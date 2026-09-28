@@ -1,0 +1,82 @@
+[
+  {
+    "caption_id": 1,
+    "image_url": "https://images.pexels.com/photos/4342129/pexels-photo-4342129.jpeg?auto=compress&cs=tinysrgb&w=900",
+    "image_alt": "Colleagues seated around a table in an office meeting.",
+    "image_source_url": "https://www.pexels.com/photo/business-meeting-in-the-office-4342129/",
+    "image_credit": "Edmond Dantès",
+    "image_license": "Pexels License"
+  },
+  {
+    "caption_id": 2,
+    "image_url": "https://images.pexels.com/photos/8199167/pexels-photo-8199167.jpeg?auto=compress&cs=tinysrgb&w=900",
+    "image_alt": "A student using a laptop during a lecture.",
+    "image_source_url": "https://www.pexels.com/photo/student-using-laptop-8199167/",
+    "image_credit": "Yan Krukau",
+    "image_license": "Pexels License"
+  },
+  {
+    "caption_id": 3,
+    "image_url": "https://images.pexels.com/photos/4669807/pexels-photo-4669807.jpeg?auto=compress&cs=tinysrgb&w=900",
+    "image_alt": "A smiling man wearing glasses using his laptop at home.",
+    "image_source_url": "https://www.pexels.com/photo/portrait-of-happy-man-using-laptop-4669807/",
+    "image_credit": "Ketut Subiyanto",
+    "image_license": "Pexels License"
+  },
+  {
+    "caption_id": 4,
+    "image_url": "https://images.pexels.com/photos/11673859/pexels-photo-11673859.jpeg?auto=compress&cs=tinysrgb&w=900",
+    "image_alt": "A woman looking back while standing at an open refrigerator.",
+    "image_source_url": "https://www.pexels.com/photo/a-woman-in-sweater-getting-food-in-the-refrigerator-while-looking-at-the-camera-11673859/",
+    "image_credit": "Brian Haider",
+    "image_license": "Pexels License"
+  },
+  {
+    "caption_id": 5,
+    "image_url": "https://images.pexels.com/photos/7129712/pexels-photo-7129712.jpeg?auto=compress&cs=tinysrgb&w=900",
+    "image_alt": "A student checking a document beside his laptop.",
+    "image_source_url": "https://www.pexels.com/photo/student-with-notebook-doing-homework-7129712/",
+    "image_credit": "Michael Burrows",
+    "image_license": "Pexels License"
+  },
+  {
+    "caption_id": 6,
+    "image_url": "https://images.pexels.com/photos/5198239/pexels-photo-5198239.jpeg?auto=compress&cs=tinysrgb&w=900",
+    "image_alt": "A man smiling while working on his laptop.",
+    "image_source_url": "https://www.pexels.com/photo/man-using-a-laptop-5198239/",
+    "image_credit": "Tima Miroshnichenko",
+    "image_license": "Pexels License"
+  },
+  {
+    "caption_id": 7,
+    "image_url": "https://images.pexels.com/photos/3760811/pexels-photo-3760811.jpeg?auto=compress&cs=tinysrgb&w=900",
+    "image_alt": "A man resting his head on a desk beside his laptop.",
+    "image_source_url": "https://www.pexels.com/photo/bored-formal-man-watching-laptop-at-desk-3760811/",
+    "image_credit": "Andrea Piacquadio",
+    "image_license": "Pexels License"
+  },
+  {
+    "caption_id": 8,
+    "image_url": "https://images.pexels.com/photos/6958584/pexels-photo-6958584.jpeg?auto=compress&cs=tinysrgb&w=900&fit=crop&h=675&crop=faces",
+    "image_alt": "A puzzled student sitting in front of open textbooks.",
+    "image_source_url": "https://www.pexels.com/photo/teenage-boy-sitting-in-front-of-open-textbooks-looking-confused-6958584/",
+    "image_credit": "Kaboompics",
+    "image_license": "Pexels License"
+  },
+  {
+    "caption_id": 9,
+    "image_url": "https://images.pexels.com/photos/6285262/pexels-photo-6285262.jpeg?auto=compress&cs=tinysrgb&w=900",
+    "image_alt": "A frustrated man wearing a headset working at his laptop.",
+    "image_source_url": "https://www.pexels.com/photo/frustrated-man-working-in-home-office-6285262/",
+    "image_credit": "Gustavo Fring",
+    "image_license": "Pexels License"
+  },
+  {
+    "caption_id": 10,
+    "image_url": "https://images.pexels.com/photos/8070525/pexels-photo-8070525.jpeg?auto=compress&cs=tinysrgb&w=900",
+    "image_alt": "A woman using her phone in bed at night beside a lit lamp.",
+    "image_source_url": "https://www.pexels.com/photo/a-woman-lying-on-the-bed-while-using-her-mobile-phone-8070525/",
+    "image_credit": "Ron Lach",
+    "image_license": "Pexels License"
+  }
+]
