@@ -28,7 +28,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
     const incomplete = !hasCompleteName(profile);
 
     return (
-        <SiteFrame active="profile">
+        <SiteFrame active="profile" profile={profile}>
             <div className="page-intro">
                 <h1>Profile</h1>
                 {incomplete && <p>Please enter your first and last name.</p>}
