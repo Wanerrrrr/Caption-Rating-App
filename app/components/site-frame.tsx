@@ -30,10 +30,10 @@ export default function SiteFrame({ children, active, profile, searchQuery = "" 
                 <header className="site-header">
                     {!signedIn && <Link href="/" className="wordmark" aria-label="Caption Club home"><span>caption<span className="brand-second">club.</span></span></Link>}
                     {signedIn && <Link className="pill-button create-link" href="/create" aria-current={active === "create" ? "page" : undefined}><Icon name="plus" /><span>Create</span></Link>}
-                    <form className="header-search" role="search" action="/explore" method="get">
+                    {signedIn && <form className="header-search" role="search" action="/explore" method="get">
                         <button className="search-submit" type="submit" aria-label="Search" disabled={!signedIn}><Icon name="search" /></button>
                         <input key={searchQuery} type="search" name="q" aria-label="Search captions and images" placeholder="Search captions / images…" defaultValue={searchQuery} maxLength={200} disabled={!signedIn} />
-                    </form>
+                    </form>}
                 </header>
                 <main id="main-content" className="site-main" tabIndex={-1}>{children}</main>
             </div>

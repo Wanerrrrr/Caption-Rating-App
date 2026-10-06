@@ -3,7 +3,30 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
-type VoteResult = { ok: true; vote: 1 | -1; message: string } | { ok: false; error: string };
+type VoteResult = { ok: true; vote: 1 | -1 | null; message: string } | { ok: false; error: string };
+
+export async function removeLike(captionId: number): Promise<VoteResult> {
+    if (!Number.isSafeInteger(captionId) || captionId <= 0) {
+        return { ok: false, error: "Choose a valid caption." };
+    }
+    const supabase = await createClient();
+    const { data, error: authError } = await supabase.auth.getUser();
+    if (authError || !data.user || data.user.is_anonymous) {
+        return { ok: false, error: "Please sign in before voting." };
+    }
+    const { error } = await supabase.from("caption_votes").delete()
+        .eq("caption_id", captionId).eq("user_id", data.user.id).eq("vote", 1);
+    if (error) return { ok: false, error: "Your like could not be removed. Please try again." };
+    // Confirm the stored state, including duplicate requests and older negative ratings.
+    const { data: remaining, error: readError } = await supabase.from("caption_votes")
+        .select("vote").eq("caption_id", captionId).eq("user_id", data.user.id).maybeSingle();
+    if (readError || (remaining && remaining.vote !== 1 && remaining.vote !== -1)) {
+        return { ok: false, error: "Refresh to check whether your like was removed." };
+    }
+    revalidatePath("/");
+    revalidatePath("/explore");
+    return { ok: true, vote: remaining?.vote ?? null, message: "Like removed." };
+}
 
 export async function submitVote(captionId: number, vote: number): Promise<VoteResult> {
     if (!Number.isSafeInteger(captionId) || captionId <= 0 || (vote !== 1 && vote !== -1)) {
