@@ -75,7 +75,7 @@ export default function ExploreGallery({ captions, votesUnavailable, searchQuery
             <div className="gallery-container">
                 {displayed.length ? <div ref={gallery} key={`${theme}:${sort}`} className="caption-grid explore-masonry" role="region" aria-label="Explore feed — scroll down to browse" tabIndex={0}>
                     {displayed.map(caption => <article className="caption-card" key={caption.id} data-caption-id={caption.id}>
-                        <VoteButtons captionId={caption.id} initialVote={caption.ownVote} unavailable={votesUnavailable} onVoteSaved={() => router.refresh()} />
+                        <VoteButtons captionId={caption.id} initialVote={caption.ownVote} likeCount={caption.like_count} unavailable={votesUnavailable} onVoteSaved={() => router.refresh()} />
                         {caption.image_url ? <CaptionPhoto src={caption.image_url} alt={caption.image_alt ?? caption.image_description ?? "Caption photo"} /> :
                             <div className="caption-photo photo-placeholder"><span className="photo-unavailable">Photo unavailable</span></div>}
                         <div className="caption-content"><blockquote>{caption.caption}</blockquote></div>

@@ -1,7 +1,7 @@
-import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { captionPrompt, generateText, GEMINI_MODEL } from "@/lib/gemini";
 import { imageExtensions, matchesImage, prepareDescriptionImage } from "@/lib/caption-image";
+import { imageHash, signDraft } from "@/lib/generation-draft";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     catch (cause) {
         return Response.json({ error: cause instanceof Error ? cause.message : "The image could not be read." }, { status: 400 });
     }
-    // Generate before uploading: failed AI requests do not leave stored images behind.
+    // Preview only: no storage upload or database write until the user publishes.
     try {
         const description = await generateText([
             { text: prepared.descriptionPrompt },
@@ -48,23 +48,9 @@ export async function POST(request: Request) {
         ], 2000);
         const prompt = captionPrompt(description, direction);
         const caption = await generateText([{ text: prompt }], 240);
-        const path = `${data.user.id}/${crypto.randomUUID()}.${imageExtensions[photo.type]}`;
-        const { error: uploadError } = await supabase.storage.from("caption-images").upload(path, bytes, { contentType: photo.type });
-        if (uploadError) return Response.json({ error: "Your caption was generated, but the photo could not be saved. Please try again." }, { status: 500 });
-        const { data: image } = supabase.storage.from("caption-images").getPublicUrl(path);
-        const { error: saveError } = await supabase.from("captions").insert({
-            caption, image_url: image.publicUrl, image_alt: description,
-            image_description: description, description_prompt: prepared.descriptionPrompt,
-            prompt, generation_model: GEMINI_MODEL, created_by: data.user.id,
-        });
-        if (saveError) {
-            const { error: cleanupError } = await supabase.storage.from("caption-images").remove([path]);
-            if (cleanupError) console.error("Unable to clean up an unsaved caption image.");
-            return Response.json({ error: "The caption could not be saved. Please try again." }, { status: 500 });
-        }
-        revalidatePath("/");
-        revalidatePath("/explore");
-        return Response.json({ caption, description }, { status: 201 });
+        const draft = signDraft({ userId: data.user.id, imageHash: imageHash(bytes), mime: photo.type,
+            caption, description, descriptionPrompt: prepared.descriptionPrompt, prompt, model: GEMINI_MODEL });
+        return Response.json({ caption, description, draft }, { headers: { "Cache-Control": "no-store" } });
     } catch (cause) {
         const message = cause instanceof Error && cause.name !== "TimeoutError" ? cause.message : "Generation took too long. Please try again.";
         return Response.json({ error: message }, { status: 502 });

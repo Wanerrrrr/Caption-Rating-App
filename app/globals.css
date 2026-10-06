@@ -335,6 +335,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
 .explore-masonry .caption-content blockquote { font-size: 13px; line-height: 1.45; }
 .explore-masonry .caption-like { width: 32px; height: 32px; top: 10px; right: 10px; }
 .explore-masonry .caption-like .ui-icon { width: 20px; height: 20px; }
+.explore-masonry .caption-like-counted { display: flex; align-items: center; justify-content: center; gap: 5px; width: auto; min-width: 54px; padding: 0 8px; border-radius: 18px; }
+.like-total { color: var(--foreground); font-family: var(--font-capriola), sans-serif; font-size: 12px; font-variant-numeric: tabular-nums; }
 @media (max-width: 767px) {
   .explore-masonry { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 12px; }
   .explore-masonry .caption-content { padding: 12px 10px 42px; }
@@ -343,3 +345,12 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
 @media (max-width: 359px) {
   .explore-masonry { grid-template-columns: minmax(0, 1fr); }
 }
+
+.generation-review { border: 2px solid var(--outline); border-radius: 20px; background: var(--pink); padding: 20px; gap: 14px; box-shadow: 3px 3px 0 #17152f16; scroll-margin: 12px; }
+.generation-review h2 { margin: 0; font-family: var(--font-capriola), sans-serif; font-size: 18px; }
+.generation-review > p { margin: 0; font-size: 12px; }
+.generation-preview-photo { width: 100%; height: auto; max-height: 190px; object-fit: contain; border-radius: 12px; }
+.generation-review blockquote { font-size: 19px; overflow-wrap: anywhere; }
+.generation-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.generation-actions .pill-button { flex: 1; justify-content: center; }
+.generation-actions .publish-button { background: var(--yellow); }
