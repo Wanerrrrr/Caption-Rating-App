@@ -31,7 +31,7 @@ export async function saveAvatarUrl(filePath: string) {
         return { error: "Your photo was uploaded, but your profile could not be saved. Please try again." };
     }
 
-    revalidatePath("/profile");
+    revalidatePath("/", "layout");
     return { avatarUrl: urlData.publicUrl };
 }
 
@@ -45,6 +45,9 @@ export async function updateProfile(formData: FormData) {
         redirect("/login");
     }
 
+    const rawNickname = formData.get("nickname");
+    const nickname = typeof rawNickname === "string" ? rawNickname.trim() : "";
+    if (!nickname || nickname.length > 40 || /[\u0000-\u001f\u007f]/.test(nickname)) redirect("/profile?error=nickname");
     const rawFirst = formData.get("first_name");
     const rawLast = formData.get("last_name");
     const firstName = typeof rawFirst === "string" ? rawFirst.trim() : "";
@@ -56,6 +59,7 @@ export async function updateProfile(formData: FormData) {
     const { error } = await supabase
         .from("profiles")
         .update({
+            nickname,
             first_name: firstName,
             last_name: lastName,
             updated_at: new Date().toISOString(),

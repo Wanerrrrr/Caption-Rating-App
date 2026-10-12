@@ -1,5 +1,7 @@
 "use client";
 
+import PostMeta from "../components/post-meta";
+
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -7,8 +9,9 @@ import { exploreCaptions, sortOptions, themes, type ExploreCaption, type Explore
 import CaptionPhoto from "../components/caption-photo";
 import VoteButtons from "../components/vote-buttons";
 import Icon from "../components/ui-icon";
+import ShareCaption from "../components/share-caption";
 
-export default function ExploreGallery({ captions, votesUnavailable, searchQuery = "" }: { captions: ExploreCaption[]; votesUnavailable: boolean; searchQuery?: string }) {
+export default function ExploreGallery({ captions, votesUnavailable, searchQuery = "", liked = false }: { captions: ExploreCaption[]; votesUnavailable: boolean; searchQuery?: string; liked?: boolean }) {
     const [theme, setTheme] = useState<ThemeId>("all");
     const [sort, setSort] = useState<ExploreSort>("newest");
     const [opened, setOpened] = useState(false);
@@ -18,7 +21,7 @@ export default function ExploreGallery({ captions, votesUnavailable, searchQuery
     const gallery = useRef<HTMLDivElement>(null);
     const router = useRouter();
     const visible = opened || hovered;
-    const displayed = exploreCaptions(captions, theme, sort, searchQuery);
+    const displayed = liked ? captions : exploreCaptions(captions, theme, sort, searchQuery);
     useEffect(() => {
         // Reserve each card's natural height in the four-pixel masonry grid.
         // Observing the cards also handles loaded images, GIFs and viewport changes.
@@ -51,12 +54,12 @@ export default function ExploreGallery({ captions, votesUnavailable, searchQuery
         };
     }, [visible]);
     return <div className="explore-content">
-        <h1 className="visually-hidden">Explore captions</h1>
-        <nav className="theme-options" aria-label="Caption themes">{themes.map(item =>
+        <h1 className={liked ? "liked-title" : "visually-hidden"}>{liked ? "Liked captions" : "Explore captions"}</h1>
+        {!liked && <nav className="theme-options" aria-label="Caption themes">{themes.map(item =>
             <button key={item.id} type="button" className="theme-option" aria-pressed={theme === item.id}
                 onClick={() => setTheme(item.id)}>{item.label}</button>
-        )}</nav>
-        <div className="explore-toolbar">
+        )}</nav>}
+        {!liked && <div className="explore-toolbar">
             {searchQuery && <div className="search-results-summary"><p role="status">{displayed.length} {displayed.length === 1 ? "result" : "results"} for <strong>“{searchQuery}”</strong></p><Link href="/explore">Clear</Link></div>}
             <div ref={filter} className="explore-filter" onPointerEnter={event => { if (event.pointerType === "mouse") setHovered(true); }}
                 onPointerLeave={() => setHovered(false)} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setOpened(false); }}
@@ -70,17 +73,18 @@ export default function ExploreGallery({ captions, votesUnavailable, searchQuery
                     </label>)}
                 </fieldset>}
             </div>
-        </div>
-        <section className="gallery-section explore-gallery" aria-label="Explore captions">
+        </div>}
+        <section className="gallery-section explore-gallery" aria-label={liked ? "Liked captions" : "Explore captions"}>
             <div className="gallery-container">
-                {displayed.length ? <div ref={gallery} key={`${theme}:${sort}`} className="caption-grid explore-masonry" role="region" aria-label="Explore feed — scroll down to browse" tabIndex={0}>
+                {displayed.length ? <div ref={gallery} key={`${theme}:${sort}`} className="caption-grid explore-masonry" role="region" aria-label={liked ? "Liked feed — scroll down to browse" : "Explore feed — scroll down to browse"} tabIndex={0}>
                     {displayed.map(caption => <article className="caption-card" key={caption.id} data-caption-id={caption.id}>
                         <VoteButtons captionId={caption.id} initialVote={caption.ownVote} likeCount={caption.like_count} unavailable={votesUnavailable} onVoteSaved={() => router.refresh()} />
                         {caption.image_url ? <CaptionPhoto src={caption.image_url} alt={caption.image_alt ?? caption.image_description ?? "Caption photo"} /> :
                             <div className="caption-photo photo-placeholder"><span className="photo-unavailable">Photo unavailable</span></div>}
-                        <div className="caption-content"><blockquote>{caption.caption}</blockquote></div>
+                        <div className="caption-content"><blockquote>{caption.caption}</blockquote><PostMeta author={caption.author ?? { nickname: "Member", avatar_url: null }} createdAt={caption.created_at} /></div>
+                        {liked && <ShareCaption id={caption.id} caption={caption.caption} hasImage={Boolean(caption.image_url)} />}
                     </article>)}
-                </div> : <div className="explore-empty" role="status"><p>{searchQuery ? "No matching captions. Try another keyword." : "No captions here yet."}</p>{theme !== "all" ? <button type="button" className="pill-button" onClick={() => setTheme("all")}>View all themes</button> : <Link className="pill-button" href="/explore">{searchQuery ? "Clear search" : "View all"}</Link>}</div>}
+                </div> : <div className="explore-empty" role="status"><p>{liked ? "Your liked captions will appear here." : searchQuery ? "No matching captions. Try another keyword." : "No captions here yet."}</p>{theme !== "all" ? <button type="button" className="pill-button" onClick={() => setTheme("all")}>View all themes</button> : <Link className="pill-button" href="/explore">{liked ? "Explore captions" : searchQuery ? "Clear search" : "View all"}</Link>}</div>}
             </div>
         </section>
     </div>;

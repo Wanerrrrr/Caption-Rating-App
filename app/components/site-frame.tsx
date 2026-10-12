@@ -6,7 +6,7 @@ import ProfileSummary, { type FrameProfile } from "./profile-summary";
 
 export default function SiteFrame({ children, active, profile, searchQuery = "" }: {
     children: React.ReactNode;
-    active: "profile" | "login" | "captions" | "create" | "explore";
+    active: "profile" | "login" | "captions" | "create" | "explore" | "liked" | "post";
     profile?: FrameProfile | null;
     searchQuery?: string;
 }) {
@@ -20,13 +20,13 @@ export default function SiteFrame({ children, active, profile, searchQuery = "" 
                 <nav aria-label="Main navigation">
                     <Link className="rail-item" href="/" aria-current={active === "captions" ? "page" : undefined}><Icon name="home" /><span>Home</span></Link>
                     <Link className="rail-item" href="/explore" aria-current={active === "explore" ? "page" : undefined}><Icon name="explore" /><span>Explore</span></Link>
-                    <button className="rail-item" disabled title="Liked captions — coming soon"><Icon name="saved" /><span>Liked<small>Coming soon</small></span></button>
+                    <Link className="rail-item" href="/liked" aria-current={active === "liked" ? "page" : undefined}><Icon name="saved" /><span>Liked</span></Link>
                     <Link className="rail-item profile-nav" href="/profile" aria-current={active === "profile" ? "page" : undefined}><Icon name="user" /><span>Profile</span></Link>
                 </nav>
                 <div className="rail-bottom"><SignOutButton /></div>
                 </div>
             </aside>}
-            <div className={`center-panel${(active === "captions" || active === "explore") ? " feed-panel" : ""}`}>
+            <div className={`center-panel${(active === "captions" || active === "explore" || active === "liked") ? " feed-panel" : ""}`}>
                 <header className="site-header">
                     {!signedIn && <Link href="/" className="wordmark" aria-label="Caption Club home"><span>caption<span className="brand-second">club.</span></span></Link>}
                     {signedIn && <Link className="pill-button create-link" href="/create" aria-current={active === "create" ? "page" : undefined}><Icon name="plus" /><span>Create</span></Link>}

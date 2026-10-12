@@ -1,3 +1,5 @@
+import type { PostAuthor } from "./post-authors";
+
 export const themes = [
     { id: "all", label: "All", pattern: null },
     { id: "nyc", label: "NYC", pattern: /\b(nyc|new york|manhattan|brooklyn|subway|central park)\b/i },
@@ -19,6 +21,8 @@ export const sortOptions = [
 export type ExploreSort = typeof sortOptions[number]["id"];
 export type ExploreCaption = {
     id: number;
+    created_by: string | null;
+    author?: PostAuthor;
     caption: string;
     image_url: string | null;
     image_alt: string | null;

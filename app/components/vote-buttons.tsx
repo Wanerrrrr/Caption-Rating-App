@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { removeLike, submitVote } from "../votes/actions";
 import Icon from "./ui-icon";
 
@@ -11,6 +12,7 @@ export default function VoteButtons({ captionId, initialVote, unavailable = fals
     const [error, setError] = useState("");
     const [pending, startTransition] = useTransition();
     const busy = useRef(false);
+    const router = useRouter();
     const currentVote = savedVote === null ? initialVote : savedVote.vote;
 
     function like() {
@@ -22,7 +24,7 @@ export default function VoteButtons({ captionId, initialVote, unavailable = fals
                 const result = await (currentVote === 1 ? removeLike(captionId) : submitVote(captionId, 1));
                 if (!result.ok) { setError(result.error); return; }
                 setSavedVote({ vote: result.vote });
-                onVoteSaved?.();
+                if (onVoteSaved) onVoteSaved(); else router.refresh();
             } catch {
                 setError("Your like could not be confirmed. Refresh to check it before trying again.");
             } finally { busy.current = false; }

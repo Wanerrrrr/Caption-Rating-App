@@ -11,6 +11,8 @@ export async function POST(request: Request) {
     const supabase = await createClient();
     const { data, error: authError } = await supabase.auth.getUser();
     if (authError || !data.user || data.user.is_anonymous) return Response.json({ error: "Please sign in before publishing." }, { status: 401 });
+    const { data: profile, error: profileError } = await supabase.from("profiles").select("nickname").eq("id", data.user.id).maybeSingle();
+    if (profileError || !profile?.nickname?.trim()) return Response.json({ error: "Choose a nickname in Profile before publishing." }, { status: 400 });
     if (Number(request.headers.get("content-length")) > MAX_BYTES + 32_768) return Response.json({ error: "Choose an image up to 3 MB." }, { status: 413 });
     let form: FormData;
     try { form = await request.formData(); }

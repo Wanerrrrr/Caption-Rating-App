@@ -1,6 +1,7 @@
+import { withPostAuthors } from "@/lib/post-authors";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { hasCompleteName } from "@/lib/profile";
+import { hasCompleteProfile } from "@/lib/profile";
 import type { ExploreCaption } from "@/lib/explore";
 import SiteFrame from "../components/site-frame";
 import ExploreGallery from "./explore-gallery";
@@ -15,16 +16,16 @@ export default async function Explore({ searchParams }: {
     const userId = data?.claims?.sub;
     if (authError || !userId) redirect("/login");
     const { data: profile, error: profileError } = await supabase.from("profiles")
-        .select("first_name, last_name, avatar_url").eq("id", userId).maybeSingle();
+        .select("first_name, last_name, avatar_url, nickname").eq("id", userId).maybeSingle();
     if (profileError) throw new Error("Unable to load your profile. Please try again.");
-    if (!hasCompleteName(profile)) redirect("/profile");
+    if (!hasCompleteProfile(profile)) redirect("/profile");
 
     // Page through the API limit so every caption participates in filtering and sorting.
     const captions: ExploreCaption[] = [];
     let loadFailed = false;
     for (let start = 0; ; start += 500) {
         const { data: rows, error } = await supabase.from("captions")
-            .select("id, caption, image_url, image_alt, image_description, created_at, like_count")
+            .select("id, caption, image_url, image_alt, image_description, created_at, created_by, like_count")
             .order("created_at", { ascending: false }).order("id", { ascending: false }).range(start, start + 499);
         if (error) { loadFailed = true; break; }
         captions.push(...(rows ?? []).map(row => ({ ...row, like_count: Number(row.like_count), ownVote: null })));
@@ -39,8 +40,9 @@ export default async function Explore({ searchParams }: {
         for (const vote of votes ?? []) if (vote.vote === 1 || vote.vote === -1) ownVotes.set(vote.caption_id, vote.vote);
         if (!votes || votes.length < 500) break;
     }
+    const posts = await withPostAuthors(supabase, captions);
     return <SiteFrame active="explore" profile={profile} searchQuery={searchQuery}>
         {loadFailed ? <p role="alert" className="collection-notice">We couldn’t load the captions. Please refresh to try again.</p> :
-            <ExploreGallery key={searchQuery} searchQuery={searchQuery} captions={captions.map(caption => ({ ...caption, ownVote: ownVotes.get(caption.id) ?? null }))} votesUnavailable={votesFailed} />}
+            <ExploreGallery key={searchQuery} searchQuery={searchQuery} captions={posts.map(caption => ({ ...caption, ownVote: ownVotes.get(caption.id) ?? null }))} votesUnavailable={votesFailed} />}
     </SiteFrame>;
 }

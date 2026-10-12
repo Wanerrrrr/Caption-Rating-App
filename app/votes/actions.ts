@@ -25,6 +25,8 @@ export async function removeLike(captionId: number): Promise<VoteResult> {
     }
     revalidatePath("/");
     revalidatePath("/explore");
+    revalidatePath("/liked");
+    revalidatePath(`/post/${captionId}`);
     return { ok: true, vote: remaining?.vote ?? null, message: "Like removed." };
 }
 
@@ -49,6 +51,8 @@ export async function submitVote(captionId: number, vote: number): Promise<VoteR
         }
         revalidatePath("/");
         revalidatePath("/explore");
+        revalidatePath("/liked");
+        revalidatePath(`/post/${captionId}`);
         return { ok: true, vote: existing.vote, message: "Your earlier vote is already saved." };
     }
     if (error) {
@@ -56,5 +60,7 @@ export async function submitVote(captionId: number, vote: number): Promise<VoteR
     }
     revalidatePath("/");
     revalidatePath("/explore");
+    revalidatePath("/liked");
+    revalidatePath(`/post/${captionId}`);
     return { ok: true, vote, message: "Vote saved. Thanks for rating!" };
 }
