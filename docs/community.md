@@ -30,3 +30,9 @@ Unauthenticated visits to `/` and signing out now open Explore. Guests may still
 The image-export endpoint now checks the session and returns 401 for unsigned or anonymous users. The proxy refreshes cookies for this endpoint. Ordinary published photo display remains available to guests.
 
 Verification: production-preview browser checks confirmed the Explore landing and like/share/download login navigation. The guest image-export endpoint returns 401. Guest Challenge remains readable. Lint, TypeScript, production build and all 34 existing offline tests pass. No changes to signed-in sharing, voting or downloads.
+
+## New badge notifications
+
+`docs/badge-notifications.sql` adds account-scoped `notified_at` state to earned badges and two authenticated RPCs. Existing badges are marked as the baseline during migration; new ones remain pending until the owner dismisses the popup. `my_new_badges` returns only the caller's pending badge identifiers. `acknowledge_badge` changes only the caller's already-earned row and is idempotent. Neither can unlock badges or change their public display setting.
+
+The owner sidebar checks new badges after syncing achievements. The native modal is rendered into the document body, so mobile visitors see it even when the sidebar is hidden. It shows the medal, name, “You earned a new badge!” and achievement condition; multiple unlocks are queued. Close, Escape and the confirmation button save acknowledgement before advancing; failure leaves the notification available to retry. Native modal focus handling prevents interacting with the background, and closing restores focus. Notifications appear on the next page load or refresh that detects a new achievement, including the existing refresh after liking or publishing.

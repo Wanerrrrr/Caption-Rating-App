@@ -19,3 +19,13 @@ test('invalid identifiers and non-boolean values never reach the database',async
 test('follow/unfollow use the authenticated RPC and refresh both profiles',async()=>{const f=fixture({id:'owner'});assert.equal((await f.followMember(target,true)).error,null);assert.equal((await f.followMember(target,false)).error,null);assert.equal(f.calls[0].name,'set_member_follow');assert.equal(f.calls[1].args.p_follow,false);assert.ok(f.invalidated.some(args=>args[0]===`/members/${target}`));});
 test('database refusal cannot be mistaken for a saved follow or earned badge',async()=>{const f=fixture({id:'owner'},{message:'private database details'});const a=await f.followMember(target,true),b=await f.displayBadge('winner',true);assert.ok(a.error);assert.ok(b.error);assert.equal(f.invalidated.length,0);assert.ok(!JSON.stringify([a,b]).includes('private database details'));});
 test('badge selection refreshes the displayed profile without accepting a user id',async()=>{const f=fixture({id:'owner'});assert.equal((await f.displayBadge('first-post',true)).error,null);assert.equal(f.calls[0].args.p_badge_id,'first-post');assert.equal(Object.hasOwn(f.calls[0].args,'user_id'),false);assert.equal(f.invalidated[0][1],'layout');});
+for(const user of [null,{id:'owner',is_anonymous:true}])test('badge notifications require a real authenticated account',async()=>{
+ const f=fixture(user);assert.ok((await f.acknowledgeBadge('first-post')).error);assert.equal(f.calls.length,0);
+});
+test('badge acknowledgement accepts only an identifier and scopes the RPC to the caller',async()=>{
+ const f=fixture({id:'owner'});assert.ok((await f.acknowledgeBadge('')).error);assert.ok((await f.acknowledgeBadge('a'.repeat(51))).error);assert.equal(f.calls.length,0);
+ assert.equal((await f.acknowledgeBadge('first-post')).error,null);assert.equal(f.calls[0].name,'acknowledge_badge');assert.equal(f.calls[0].args.p_badge_id,'first-post');assert.equal(Object.keys(f.calls[0].args).length,1);assert.equal(f.invalidated[0][1],'layout');
+});
+test('failed acknowledgement preserves notification eligibility and hides database details',async()=>{
+ const f=fixture({id:'owner'},{message:'private error'});const result=await f.acknowledgeBadge('first-post');assert.ok(result.error);assert(!JSON.stringify(result).includes('private error'));assert.equal(f.invalidated.length,0);
+});
