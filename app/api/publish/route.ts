@@ -62,7 +62,7 @@ export async function POST(request: Request) {
     const { error: saveError } = await supabase.from("captions").insert({
         caption: draft.caption, image_url: image.publicUrl, image_alt: draft.description,
         image_description: draft.description, description_prompt: draft.descriptionPrompt,
-        prompt: draft.prompt, generation_model: draft.model, created_by: data.user.id, generation_id: draft.generationId, challenge_id: draft.challengeId,
+        prompt: draft.prompt, generation_model: draft.model, description_model: draft.descriptionModel ?? draft.model, created_by: data.user.id, generation_id: draft.generationId, challenge_id: draft.challengeId,
     });
     if (saveError) {
         const check = await alreadyPublished();

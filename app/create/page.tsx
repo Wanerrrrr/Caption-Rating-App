@@ -22,6 +22,6 @@ export default async function CreatePage({ searchParams }: { searchParams: Promi
     }
     return <SiteFrame active="create" profile={profile}>
         <div className="page-intro"><h1>{challenge ? "Enter the challenge" : "Make a caption"}</h1><p>{challenge ? `${challenge.title} · ${challenge.theme}` : "Upload an image and let AI turn it into a caption."}</p></div>
-        {challengeError ? <p role="alert">{challengeError}</p> : <GenerateForm configured={Boolean(process.env.GEMINI_API_KEY && process.env.CHALLENGE_SERVER_SECRET)} initialCredits={credits} challenge={challenge} />}
+        {challengeError ? <p role="alert">{challengeError}</p> : <GenerateForm configured={Boolean((process.env.GEMINI_API_KEY || process.env.GROQ_API_KEY) && process.env.CHALLENGE_SERVER_SECRET)} initialCredits={credits} challenge={challenge} />}
     </SiteFrame>;
 }

@@ -1,7 +1,7 @@
 import { assertCanEnter, getChallenge, fixedChallengeImage, finishCredit, serverSecret, UUID } from "@/lib/challenge";
 import { randomUUID } from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
-import { captionPrompt, generateText, GEMINI_MODEL, logGeneration } from "@/lib/gemini";
+import { captionPrompt, generateWithFallback, aiConfigured, ProviderFailure, type Provider, logGeneration } from "@/lib/gemini";
 import { imageExtensions, matchesImage, prepareDescriptionImage } from "@/lib/caption-image";
 import { imageHash, signDraft } from "@/lib/generation-draft";
 
@@ -25,8 +25,8 @@ export async function POST(request: Request) {
     if (error || !data.user || data.user.is_anonymous) {
         return reject("Please sign in before generating a caption.", 401, "authentication_required");
     }
-    if (!process.env.GEMINI_API_KEY) {
-        return reject("AI generation is not configured yet. Add GEMINI_API_KEY on the server.", 503, "configuration");
+    if (!aiConfigured()) {
+        return reject("AI generation is not configured yet. Configure an AI service on the server.", 503, "configuration");
     }
     if (Number(request.headers.get("content-length")) > MAX_BYTES + 32_768) {
         return reject("Choose an image up to 3 MB.", 413, "upload_too_large");
@@ -73,27 +73,30 @@ export async function POST(request: Request) {
         if (error) return reject(error.message, 429, "credits_unavailable");
         generationId = reserved;
     } catch (cause) { return reject(cause instanceof Error ? cause.message : "Generation credits unavailable.", 503, "credits_configuration"); }
-    async function acquireCall() {
-        const { error } = await supabase.rpc("acquire_generation_call", { p_generation_id: generationId, p_server_secret: serverSecret() });
-        if (error) throw new Error(error.message);
+    async function acquireCall(provider: Provider) {
+        const { error } = await supabase.rpc("acquire_provider_call", { p_provider: provider, p_generation_id: generationId, p_server_secret: serverSecret() });
+        if (error) {
+            if (/^Daily AI capacity reached|^AI is busy/.test(error.message)) throw new ProviderFailure(error.message, true);
+            throw new Error(error.message);
+        }
     }
     let stage: "description" | "caption" | "draft" = "description";
     // Preview only: no storage upload or database write until the user publishes.
     try {
-        await acquireCall();
-        const description = await generateText([
+        const descriptionResult = await generateWithFallback([
             { text: prepared.descriptionPrompt },
             ...prepared.images,
-        ], 2000, { requestId, stage: "description" });
+        ], 2000, { requestId, stage: "description" }, acquireCall, started + 110_000);
+        const description = descriptionResult.text;
         const prompt = captionPrompt(description, challenge ? `${challenge.theme}. ${direction}` : direction);
         stage = "caption";
-        await acquireCall();
-        const caption = await generateText([{ text: prompt }], 240, { requestId, stage: "caption" });
+        const captionResult = await generateWithFallback([{ text: prompt }], 240, { requestId, stage: "caption" }, acquireCall, started + 110_000, descriptionResult.provider);
+        const caption = captionResult.text;
         stage = "draft";
         const draftStarted = Date.now();
         logGeneration({ requestId, stage }, "started");
         const draft = signDraft({ generationId, challengeId, userId: data.user.id, imageHash: imageHash(bytes), mime: photo.type,
-            caption, description, descriptionPrompt: prepared.descriptionPrompt, prompt, model: GEMINI_MODEL });
+            caption, description, descriptionPrompt: prepared.descriptionPrompt, prompt, model: captionResult.model, descriptionModel: descriptionResult.model });
         const credits = await finishCredit(supabase, generationId, true);
         logGeneration({ requestId, stage }, "success", { elapsedMs: Date.now() - draftStarted });
         logGeneration({ requestId, stage: "request" }, "success", { elapsedMs: Date.now() - started });

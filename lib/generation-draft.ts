@@ -3,11 +3,11 @@ import { createHash, createHmac, randomUUID, timingSafeEqual } from "node:crypto
 
 export type GenerationDraft = {
     id: string; userId: string; expiresAt: number; imageHash: string; mime: string;
-    generationId: string; challengeId: string | null; caption: string; description: string; descriptionPrompt: string; prompt: string; model: string;
+    generationId: string; challengeId: string | null; caption: string; description: string; descriptionPrompt: string; prompt: string; model: string; descriptionModel?: string;
 };
 
 function signature(payload: string) {
-    const secret = process.env.GEMINI_API_KEY;
+    const secret = process.env.GEMINI_API_KEY || process.env.CHALLENGE_SERVER_SECRET;
     if (!secret) throw new Error("AI generation is not configured.");
     return createHmac("sha256", secret).update(`caption-club-draft:v1:${payload}`).digest();
 }
