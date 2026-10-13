@@ -3,7 +3,7 @@ import { createHash, createHmac, randomUUID, timingSafeEqual } from "node:crypto
 
 export type GenerationDraft = {
     id: string; userId: string; expiresAt: number; imageHash: string; mime: string;
-    caption: string; description: string; descriptionPrompt: string; prompt: string; model: string;
+    generationId: string; challengeId: string | null; caption: string; description: string; descriptionPrompt: string; prompt: string; model: string;
 };
 
 function signature(payload: string) {

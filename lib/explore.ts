@@ -30,6 +30,10 @@ export type ExploreCaption = {
     created_at: string;
     like_count: number;
     ownVote: 1 | -1 | null;
+    challenge_id?: string | null;
+    votingClosed?: boolean;
+    rank?: number | null;
+    reward?: number | null;
 };
 
 export function exploreCaptions(captions: ExploreCaption[], theme: ThemeId, sort: ExploreSort, query = "") {

@@ -1,3 +1,4 @@
+import { assertCanEnter, getChallenge, fixedChallengeImage, finishCredit, serverSecret, UUID } from "@/lib/challenge";
 import { randomUUID } from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
 import { captionPrompt, generateText, GEMINI_MODEL, logGeneration } from "@/lib/gemini";
@@ -33,7 +34,19 @@ export async function POST(request: Request) {
     let form: FormData;
     try { form = await request.formData(); }
     catch { return reject("The upload could not be read.", 400, "unreadable_upload"); }
-    const photo = form.get("photo");
+    const challengeValue = form.get("challengeId");
+    const challengeId = typeof challengeValue === "string" && challengeValue ? challengeValue : null;
+    if (challengeId && !UUID.test(challengeId)) return reject("Choose a valid challenge.", 400, "invalid_challenge");
+    let challenge = null;
+    let photo = form.get("photo");
+    try {
+        if (challengeId) {
+            challenge = await getChallenge(supabase, challengeId);
+            if (!challenge) return reject("Challenge not found.", 404, "invalid_challenge");
+            await assertCanEnter(supabase, challenge, data.user.id);
+            if (challenge.image_url) photo = await fixedChallengeImage(challenge);
+        }
+    } catch (cause) { return reject(cause instanceof Error ? cause.message : "Challenge unavailable.", 400, "challenge_unavailable"); }
     const rawDirection = form.get("direction");
     const direction = typeof rawDirection === "string" ? rawDirection.trim() : "";
     if (!(photo instanceof File) || !imageExtensions[photo.type] || photo.size === 0 || photo.size > MAX_BYTES || direction.length > 300) {
@@ -54,25 +67,40 @@ export async function POST(request: Request) {
         logGeneration({ requestId, stage: "image_processing" }, "failure", { kind: "invalid_image", elapsedMs: Date.now() - imageStarted });
         return reject(cause instanceof Error ? cause.message : "The image could not be read.", 400, "image_processing");
     }
+    let generationId: string;
+    try {
+        const { data: reserved, error } = await supabase.rpc("reserve_generation", { p_server_secret: serverSecret(), p_challenge_id: challengeId });
+        if (error) return reject(error.message, 429, "credits_unavailable");
+        generationId = reserved;
+    } catch (cause) { return reject(cause instanceof Error ? cause.message : "Generation credits unavailable.", 503, "credits_configuration"); }
+    async function acquireCall() {
+        const { error } = await supabase.rpc("acquire_generation_call", { p_generation_id: generationId, p_server_secret: serverSecret() });
+        if (error) throw new Error(error.message);
+    }
     let stage: "description" | "caption" | "draft" = "description";
     // Preview only: no storage upload or database write until the user publishes.
     try {
+        await acquireCall();
         const description = await generateText([
             { text: prepared.descriptionPrompt },
             ...prepared.images,
         ], 2000, { requestId, stage: "description" });
-        const prompt = captionPrompt(description, direction);
+        const prompt = captionPrompt(description, challenge ? `${challenge.theme}. ${direction}` : direction);
         stage = "caption";
+        await acquireCall();
         const caption = await generateText([{ text: prompt }], 240, { requestId, stage: "caption" });
         stage = "draft";
         const draftStarted = Date.now();
         logGeneration({ requestId, stage }, "started");
-        const draft = signDraft({ userId: data.user.id, imageHash: imageHash(bytes), mime: photo.type,
+        const draft = signDraft({ generationId, challengeId, userId: data.user.id, imageHash: imageHash(bytes), mime: photo.type,
             caption, description, descriptionPrompt: prepared.descriptionPrompt, prompt, model: GEMINI_MODEL });
+        const credits = await finishCredit(supabase, generationId, true);
         logGeneration({ requestId, stage }, "success", { elapsedMs: Date.now() - draftStarted });
         logGeneration({ requestId, stage: "request" }, "success", { elapsedMs: Date.now() - started });
-        return Response.json({ caption, description, draft }, { headers: { "Cache-Control": "no-store" } });
+        return Response.json({ caption, description, draft, credits }, { headers: { "Cache-Control": "no-store" } });
     } catch (cause) {
+        try { await finishCredit(supabase, generationId, false); }
+        catch { logGeneration({ requestId, stage: "request" }, "failure", { kind: "credit_refund_pending" }); }
         if (stage === "draft") logGeneration({ requestId, stage }, "failure", { kind: "draft_processing", elapsedMs: Date.now() - started });
         logGeneration({ requestId, stage: "request" }, "failure", { failedStage: stage, elapsedMs: Date.now() - started });
         const message = cause instanceof Error && cause.name !== "TimeoutError" ? cause.message : "Generation took too long. Please try again.";

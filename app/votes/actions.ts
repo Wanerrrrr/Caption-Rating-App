@@ -16,7 +16,7 @@ export async function removeLike(captionId: number): Promise<VoteResult> {
     }
     const { error } = await supabase.from("caption_votes").delete()
         .eq("caption_id", captionId).eq("user_id", data.user.id).eq("vote", 1);
-    if (error) return { ok: false, error: "Your like could not be removed. Please try again." };
+    if (error) return { ok: false, error: error.message.includes("Voting for this challenge has closed") ? "Voting for this challenge has closed." : "Your like could not be removed. Please try again." };
     // Confirm the stored state, including duplicate requests and older negative ratings.
     const { data: remaining, error: readError } = await supabase.from("caption_votes")
         .select("vote").eq("caption_id", captionId).eq("user_id", data.user.id).maybeSingle();
@@ -56,7 +56,7 @@ export async function submitVote(captionId: number, vote: number): Promise<VoteR
         return { ok: true, vote: existing.vote, message: "Your earlier vote is already saved." };
     }
     if (error) {
-        return { ok: false, error: error.code === "23503" ? "This caption is no longer available." : "Your vote could not be saved. Please try again." };
+        return { ok: false, error: error.message.includes("Voting for this challenge has closed") ? "Voting for this challenge has closed." : error.code === "23503" ? "This caption is no longer available." : "Your vote could not be saved. Please try again." };
     }
     revalidatePath("/");
     revalidatePath("/explore");

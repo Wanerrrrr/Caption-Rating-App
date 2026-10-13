@@ -1,7 +1,8 @@
-export type IconName = "home" | "explore" | "saved" | "search" | "plus" | "user" | "lock" | "award" | "arrow" | "upload" | "filter" | "chevron" | "download" | "link" | "close" | "share";
+export type IconName = "home" | "explore" | "saved" | "search" | "plus" | "user" | "lock" | "award" | "arrow" | "upload" | "filter" | "chevron" | "download" | "link" | "close" | "share" | "pencil";
 
 export default function Icon({ name }: { name: IconName }) {
     const paths: Record<IconName, React.ReactNode> = {
+        pencil: <><path d="m15 4 5 5M4 20l4-1 12-12a2.1 2.1 0 0 0-3-3L5 16l-1 4Z" /></>,
         home: <><path d="m3 10 9-7 9 7" /><path d="M5 9v12h5v-7h4v7h5V9" /></>,
         explore: <><circle cx="12" cy="12" r="9" /><path d="m16 8-3 5-5 3 3-5 5-3Z" /></>,
         saved: <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z" />,

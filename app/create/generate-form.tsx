@@ -3,9 +3,15 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useRef, useState, type FormEvent, type DragEvent } from "react";
+import { useRouter } from "next/navigation";
+import type { Challenge, Credits } from "@/lib/challenge";
 import Icon from "../components/ui-icon";
 
-export default function GenerateForm({ configured }: { configured: boolean }) {
+export default function GenerateForm({ configured, initialCredits, challenge }: { configured: boolean; initialCredits: Credits; challenge: Challenge | null }) {
+    const [updatedCredits, setUpdatedCredits] = useState<{ base: Credits; value: Credits } | null>(null);
+    const credits = updatedCredits?.base === initialCredits ? updatedCredits.value : initialCredits;
+    const router = useRouter();
+    const fixedImage = challenge?.image_url ?? null;
     const [pending, setPending] = useState(false);
     const [publishing, setPublishing] = useState(false);
     const [published, setPublished] = useState(false);
@@ -53,11 +59,12 @@ export default function GenerateForm({ configured }: { configured: boolean }) {
         if (busy.current) return;
         const form = new FormData(event.currentTarget);
         setError("");
-        if (!photo) {
+        if (!photo && !fixedImage) {
             setError("Choose an image up to 3 MB.");
             return;
         }
-        form.set("photo", photo);
+        if (photo) form.set("photo", photo);
+        if (challenge) form.set("challengeId", challenge.id);
         busy.current = true;
         setPending(true);
         try {
@@ -65,9 +72,12 @@ export default function GenerateForm({ configured }: { configured: boolean }) {
             const payload = await response.json();
             if (!response.ok) throw new Error(payload.error || "Generation failed. Please try again.");
             setResult(payload);
+            if (payload.credits) setUpdatedCredits({ base: initialCredits, value: payload.credits });
+            router.refresh();
             setPublished(false);
         } catch (cause) {
             setError(cause instanceof Error ? cause.message : "Generation failed. Please try again.");
+            router.refresh();
         } finally {
             busy.current = false;
             setPending(false);
@@ -75,16 +85,19 @@ export default function GenerateForm({ configured }: { configured: boolean }) {
     }
 
     async function publish() {
-        if (busy.current || !result || !photo || published) return;
+        if (busy.current || !result || (!photo && !fixedImage) || published) return;
         busy.current = true;
         setPending(true); setPublishing(true); setError("");
         const form = new FormData();
-        form.set("photo", photo); form.set("draft", result.draft);
+        if (photo) form.set("photo", photo);
+        if (challenge) form.set("challengeId", challenge.id);
+        form.set("draft", result.draft);
         try {
             const response = await fetch("/api/publish", { method: "POST", body: form });
             const payload = await response.json();
             if (!response.ok) throw new Error(payload.error || "Publishing failed. Please retry.");
             setPublished(true);
+            router.refresh();
         } catch (cause) {
             setError(cause instanceof Error ? cause.message : "Publishing failed. Please retry.");
         } finally { busy.current = false; setPending(false); setPublishing(false); }
@@ -94,7 +107,7 @@ export default function GenerateForm({ configured }: { configured: boolean }) {
         <form onSubmit={submit} className="details-card profile-form generation-form" aria-busy={pending}>
             <section className="image-upload-card" aria-labelledby="image-upload-heading">
                 <h2 id="image-upload-heading">Image</h2>
-                <div className={`image-dropzone${dragging ? " is-dragging" : ""}`} onDragEnter={(event) => {
+                {fixedImage ? <div className="fixed-challenge-image"><Image src={fixedImage} alt="This week’s challenge image" width={900} height={675} unoptimized /><p>Everyone captions the same image.</p></div> : <div className={`image-dropzone${dragging ? " is-dragging" : ""}`} onDragEnter={(event) => {
                     event.preventDefault();
                     if (busy.current) return;
                     dragDepth.current += 1;
@@ -110,18 +123,18 @@ export default function GenerateForm({ configured }: { configured: boolean }) {
                     <p className="dropzone-instruction">Choose an image or drag & drop it here.</p>
                     <p id="photo-help" className="dropzone-formats">JPG, PNG, WebP or GIF · Max 3 MB.</p>
                     <p id="selected-photo" className="selected-photo" role="status">{photo?.name ?? ""}</p>
-                </div>
+                </div>}
             </section>
             <label htmlFor="caption-direction">Creative direction (optional)<input id="caption-direction" name="direction" maxLength={300} placeholder="e.g. Finals week energy" disabled={pending || published} /></label>
             {!configured && <p role="status">Generation will be available once the app owner finishes AI setup.</p>}
             {result && <section ref={review} className="generation-result generation-review" aria-label="Caption preview">
                 <h2>{published ? "Published!" : "Review your caption"}</h2>
-                {preview && <Image className="generation-preview-photo" src={preview} alt="Your selected image" width={900} height={675} unoptimized />}
+                {(preview || fixedImage) && <Image className="generation-preview-photo" src={preview || fixedImage!} alt="Your selected image" width={900} height={675} unoptimized />}
                 <blockquote>{result.caption}</blockquote>
                 {!published && <p>This is a preview. Publish when you’re happy with it.</p>}
             </section>}
-            {published ? <Link className="pill-button" href="/">View published caption ↗</Link> : <div className="generation-actions">
-                <button className="pill-button" type="submit" disabled={pending || !configured}>{pending && !publishing ? "Generating…" : result ? "Regenerate" : "Generate"}<span aria-hidden="true">✳</span></button>
+            {published ? <Link className="pill-button" href={challenge ? "/" : "/explore"}>View published caption ↗</Link> : <div className="generation-actions">
+                <button className="pill-button" type="submit" disabled={pending || !configured || credits.total <= 0}>{pending && !publishing ? "Generating…" : result ? "Regenerate" : "Generate"}<span aria-hidden="true">✳</span></button>
                 {result && <button className="pill-button publish-button" type="button" disabled={pending} onClick={publish}>{publishing ? "Publishing…" : "Publish"}<Icon name="arrow" /></button>}
             </div>}
             {error && <p role="alert">{error}</p>}

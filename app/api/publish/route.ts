@@ -1,3 +1,4 @@
+import { getChallenge, fixedChallengeImage, UUID } from "@/lib/challenge";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { imageExtensions, matchesImage } from "@/lib/caption-image";
@@ -17,13 +18,26 @@ export async function POST(request: Request) {
     let form: FormData;
     try { form = await request.formData(); }
     catch { return Response.json({ error: "The upload could not be read." }, { status: 400 }); }
-    const photo = form.get("photo"), token = form.get("draft");
+    const token = form.get("draft");
+    const challengeValue = form.get("challengeId");
+    const challengeId = typeof challengeValue === "string" && challengeValue ? challengeValue : null;
+    let photo = form.get("photo");
+    try {
+        if (challengeId) {
+            if (!UUID.test(challengeId)) throw new Error("Invalid challenge.");
+            const challenge = await getChallenge(supabase, challengeId);
+            if (!challenge) throw new Error("Challenge not found.");
+            // The insert trigger checks the deadline and one-entry rule atomically.
+            if (challenge.image_url) photo = await fixedChallengeImage(challenge);
+        }
+    } catch (cause) { return Response.json({ error: cause instanceof Error ? cause.message : "Challenge unavailable." }, { status: 400 }); }
     if (!(photo instanceof File) || !imageExtensions[photo.type] || !photo.size || photo.size > MAX_BYTES || typeof token !== "string") return Response.json({ error: "Generate a preview before publishing." }, { status: 400 });
     const bytes = Buffer.from(await photo.arrayBuffer());
     if (!matchesImage(bytes, photo.type)) return Response.json({ error: "Invalid image format." }, { status: 400 });
     let draft;
     try { draft = verifyDraft(token, data.user.id, bytes, photo.type); }
     catch (cause) { return Response.json({ error: cause instanceof Error ? cause.message : "Invalid preview. Generate again." }, { status: 400 }); }
+    if (!draft.generationId || draft.challengeId !== challengeId) return Response.json({ error: "Generate a new preview for this challenge before publishing." }, { status: 400 });
     const path = `${data.user.id}/${draft.id}.${imageExtensions[photo.type]}`;
     const { data: image } = supabase.storage.from("caption-images").getPublicUrl(path);
     const alreadyPublished = async () => {
@@ -32,7 +46,7 @@ export async function POST(request: Request) {
         return { existing, error };
     };
     const success = () => {
-        revalidatePath("/"); revalidatePath("/explore");
+        revalidatePath("/"); revalidatePath("/explore"); revalidatePath("/liked");
         return Response.json({ published: true });
     };
     // A stable draft path and non-overwriting upload prevent duplicate publishes.
@@ -48,7 +62,7 @@ export async function POST(request: Request) {
     const { error: saveError } = await supabase.from("captions").insert({
         caption: draft.caption, image_url: image.publicUrl, image_alt: draft.description,
         image_description: draft.description, description_prompt: draft.descriptionPrompt,
-        prompt: draft.prompt, generation_model: draft.model, created_by: data.user.id,
+        prompt: draft.prompt, generation_model: draft.model, created_by: data.user.id, generation_id: draft.generationId, challenge_id: draft.challengeId,
     });
     if (saveError) {
         const check = await alreadyPublished();
