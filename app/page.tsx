@@ -9,10 +9,12 @@ import SiteFrame from "./components/site-frame";
 import CaptionPhoto from "./components/caption-photo";
 import ExploreGallery from "./explore/explore-gallery";
 
-export default async function Home({ searchParams }: { searchParams: Promise<{ round?: string }> }) {
+export default async function Home({ searchParams }: { searchParams: Promise<{ round?: string; view?: string }> }) {
     const client = await createClient();
     const { data: auth } = await client.auth.getUser();
     const userId = auth.user && !auth.user.is_anonymous ? auth.user.id : null;
+    const { round, view } = await searchParams;
+    if (!userId && !round && view !== "challenge") redirect("/explore");
     const { data: profile, error: profileError } = userId ? await client.from("profiles").select("first_name,last_name,avatar_url,nickname").eq("id",userId).maybeSingle() : { data: null, error: null };
     if (profileError) throw new Error("Unable to load your profile.");
     if (userId && !hasCompleteProfile(profile)) redirect("/profile");
@@ -23,7 +25,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
     if (roundError) throw new Error("Unable to load weekly challenges.");
     const now = challengeTime(); const allRounds = (rounds ?? []) as Challenge[];
     const active = allRounds.find(round=>Date.parse(round.starts_at)<=now && Date.parse(round.ends_at)>now);
-    const { round } = await searchParams;
     const challenge = (round ? allRounds.find(item=>item.id===round && Date.parse(item.starts_at)<=now) : active) ?? null;
     const { data: entries, error: entriesError } = challenge ? await client.from("challenge_entries").select("*").eq("challenge_id",challenge.id) : {data:[],error:null};
     const ids = (entries ?? []).map(entry=>entry.caption_id);
@@ -51,7 +52,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
                 </> : <><h2>The next challenge is on its way.</h2><p>Explore captions while the club prepares this week’s theme.</p><Link className="pill-button" href="/explore">Explore captions ↗</Link></>}
             </section>
             <div className="challenge-prizes"><div><PrizeMedal place={1}/><div className="prize-copy"><strong>1 winner</strong><span>+3 credits</span></div></div><div><PrizeMedal place={2}/><div className="prize-copy"><strong>3 winners</strong><span>+2 credits each</span></div></div><div><PrizeMedal place={3}/><div className="prize-copy"><strong>10 winners</strong><span>+1 credit each</span></div></div></div>
-            <div className="challenge-rounds"><Link href="/" aria-current={!round?'page':undefined}>This week</Link>{past.map(item=><Link key={item.id} href={`/?round=${item.id}`} aria-current={challenge?.id===item.id?'page':undefined}>{item.title}</Link>)}</div>
+            <div className="challenge-rounds"><Link href={userId ? "/" : "/?view=challenge"} aria-current={!round?'page':undefined}>This week</Link>{past.map(item=><Link key={item.id} href={`/?round=${item.id}`} aria-current={challenge?.id===item.id?'page':undefined}>{item.title}</Link>)}</div>
             {settlementError && <p role="alert">Results are still being settled. Please refresh.</p>}
             {entriesError || captionsError ? <p role="alert">Entries could not be loaded. Please refresh.</p> : challenge && <ExploreGallery guest={!userId} captions={posts} votesUnavailable={Boolean(votesError)} contest />}
         </div>

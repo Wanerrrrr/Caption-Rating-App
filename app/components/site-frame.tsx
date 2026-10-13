@@ -24,7 +24,7 @@ export default async function SiteFrame({ children, active, profile, searchQuery
                 <nav aria-label="Main navigation">
                     <Link className="rail-item" href="/explore" aria-current={active === "explore" ? "page" : undefined}><Icon name="explore" /><span>Explore</span></Link>
                     <Link className="rail-item" href={guest ? "/login" : "/create"} aria-current={active === "create" ? "page" : undefined}><Icon name="plus" /><span>Create</span></Link>
-                    <Link className="rail-item challenge-nav" href="/" aria-current={active === "captions" ? "page" : undefined}><Icon name="home" /><span>Challenge</span></Link>
+                    <Link className="rail-item challenge-nav" href={guest ? "/?view=challenge" : "/"} aria-current={active === "captions" ? "page" : undefined}><Icon name="home" /><span>Challenge</span></Link>
                     {!guest && <Link className="rail-item" href="/me" aria-current={active === "me" ? "page" : undefined}><Icon name="user" /><span>Me</span></Link>}
                 </nav>
                 <div className="rail-bottom">{guest ? <Link className="signout-button guest-signin-link" href="/login">Sign in</Link> : <SignOutButton />}</div>

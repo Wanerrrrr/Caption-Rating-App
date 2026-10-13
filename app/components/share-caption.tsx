@@ -1,12 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import Image from "next/image";
 import { createPortal } from "react-dom";
 import { useEffect, useRef, useState } from "react";
 import Icon from "./ui-icon";
 import { makeShareImage } from "@/lib/share-image";
 
-export default function ShareCaption({ id, caption, hasImage }: { id: number; caption: string; hasImage: boolean }) {
+export default function ShareCaption({ id, caption, hasImage, guest = false }: { id: number; caption: string; hasImage: boolean; guest?: boolean }) {
     const [open, setOpen] = useState(false), [busy, setBusy] = useState(false);
     const [message, setMessage] = useState(""), [manualLink, setManualLink] = useState("");
     const [preview, setPreview] = useState(""), [shareable, setShareable] = useState(false);
@@ -101,6 +102,10 @@ export default function ShareCaption({ id, caption, hasImage }: { id: number; ca
             if (!(error instanceof Error && error.name === "AbortError")) setMessage("Sharing unavailable. Try downloading the image.");
         }
     }
+    if (guest) return <div className="caption-share"><div className="caption-share-tools">
+        <Link href="/login" className="share-icon-button" aria-label={`Sign in to share caption ${id}`} title="Sign in to share"><Icon name="share" /></Link>
+        <Link href="/login" className="share-icon-button" aria-label={`Sign in to download caption ${id} image`} title="Sign in to download"><Icon name="download" /></Link>
+    </div></div>;
     const encoded = encodeURIComponent(url);
     return <div className="caption-share">
         <div className="caption-share-tools">

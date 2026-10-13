@@ -28,7 +28,7 @@ export default async function Post({ params }: { params: Promise<{ id: string }>
             {<VoteButtons guest={!user} captionId={caption.id} initialVote={vote?.vote ?? null} likeCount={Number(caption.like_count)} votingClosed={votingClosed} />}
             {caption.image_url && <CaptionPhoto src={caption.image_url} alt={caption.image_alt ?? "Caption photo"} />}
             <div className="caption-content"><blockquote>{caption.caption}</blockquote><PostMeta canViewProfile={Boolean(user)} author={post.author} createdAt={caption.created_at} /></div>
-            <ShareCaption id={caption.id} caption={caption.caption} hasImage={Boolean(caption.image_url)} />
+            <ShareCaption guest={!user} id={caption.id} caption={caption.caption} hasImage={Boolean(caption.image_url)} />
         </article>{!user && <Link className="pill-button" href="/login">Sign in to like captions ↗</Link>}</div>
     </SiteFrame>;
 }

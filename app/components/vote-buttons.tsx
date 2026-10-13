@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { removeLike, submitVote } from "../votes/actions";
@@ -32,6 +33,9 @@ export default function VoteButtons({ captionId, initialVote, unavailable = fals
     }
 
     const title = guest ? "Sign in to like captions" : votingClosed ? "Challenge voting has closed" : unavailable ? "Refresh to load your likes" : currentVote === 1 ? "Unlike this caption" : currentVote === -1 ? "An earlier rating is already saved" : "Like this caption";
+    if (guest) return <Link href="/login" className={`caption-like${likeCount === undefined ? "" : " caption-like-counted"}`} title={title} aria-label={`Sign in to like caption ${captionId}`}>
+        <Icon name="saved" />{likeCount !== undefined && <span className="like-total"><span className="visually-hidden">Total likes: </span>{likeCount}</span>}
+    </Link>;
     return <>
         <button className={`caption-like${likeCount === undefined ? "" : " caption-like-counted"}`} type="button" aria-label={`${currentVote === 1 ? "Unlike" : "Like"} caption ${captionId}`}
             aria-describedby={likeCount === undefined ? undefined : `like-total-${captionId}`}

@@ -425,9 +425,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
 .challenge-rounds { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; }
 .challenge-rounds [aria-current=page] { font-weight: bold; }
 .challenge-content .explore-content { min-height: 300px; height: auto; flex: none; }
-.challenge-content .explore-gallery { margin-top: 0; }
-.challenge-content .explore-masonry { max-height: none; overflow: visible; }
-.challenge-content .gallery-container { overflow: visible; }
+.challenge-content .explore-gallery { margin-top: 0; flex: none; }
+.challenge-content .explore-masonry { flex: none; max-height: none; overflow: visible; }
+/* Only contain width: height must grow with the challenge entry cards. */
+.challenge-content .gallery-container { container-type: inline-size; min-height: 300px; }
 .challenge-post-label { font-size: 10px; font-family: var(--font-capriola),sans-serif; }
 .challenge-image .caption-photo { width: 100%; height: auto; border: 2px solid var(--outline); border-radius: 18px; }
 .challenge-image .caption-photo img { width: 100%; height: auto; max-height: 280px; object-fit: contain; }
@@ -589,3 +590,18 @@ a.post-author:hover .post-author-name { text-decoration:underline; }
 .guest-signin-card .pill-button { font-family: var(--font-capriola),sans-serif; font-size: 12px; padding: 14px 10px; justify-content: center; }
 .guest-shell .site-header { min-height: 30px; padding: 0; }
 @media (max-width: 767px) { .guest-shell .navigation-rail nav { grid-template-columns: repeat(3,minmax(0,1fr)); } }
+
+/* Native dialog stays visible above the rails, including on mobile. */
+.badge-unlock-panel { width:min(420px,calc(100vw - 32px)); max-height:calc(100dvh - 40px); overflow-y:auto; margin:auto; padding:36px 28px 28px; border:2px solid var(--outline); border-radius:26px; background:var(--pink); color:var(--foreground); text-align:center; box-shadow:6px 7px 0 #b9b5f3; }
+.badge-unlock-panel::backdrop { background:#17152f66; backdrop-filter:blur(3px); }
+.badge-unlock-close { position:absolute; top:12px; right:12px; }
+.badge-unlock-medal { display:grid; place-items:center; width:88px; height:88px; margin:0 auto 20px; border:2px solid var(--outline); border-radius:50%; background:var(--yellow); box-shadow:3px 4px 0 #17152f16; }
+.badge-unlock-medal .ui-icon { width:52px; height:52px; }
+.badge-unlock-panel h2 { font-size:22px; margin:0 0 16px; }
+.badge-unlock-name { display:block; font-family:var(--font-capriola),sans-serif; font-size:20px; }
+.badge-unlock-panel p { font-size:14px; line-height:1.6; margin:16px 0 22px; }
+.badge-unlock-panel p span { display:block; font-size:11px; color:var(--ink); margin-bottom:5px; }
+.badge-unlock-panel .pill-button { min-width:160px; justify-content:center; }
+.badge-unlock-panel .badge-unlock-more { font-size:12px; margin:0 0 14px; }
+.badge-unlock-panel .badge-unlock-error { font-size:12px; color:var(--red); }
+.badge-unlock-panel button:disabled { opacity:.6; cursor:wait; }

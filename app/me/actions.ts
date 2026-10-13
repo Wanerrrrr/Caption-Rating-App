@@ -18,3 +18,12 @@ export async function displayBadge(id:string,displayed:boolean) {
  if(error)return {error:'Could not save your badge. Only earned badges can be displayed.'};
  revalidatePath('/', 'layout');return {error:null};
 }
+
+export async function acknowledgeBadge(id:string) {
+ if(typeof id!=='string'||!id||id.length>50)return {error:'Invalid badge.'};
+ const client=await createClient();const {data}=await client.auth.getUser();
+ if(!data.user||data.user.is_anonymous)return {error:'Sign in to continue.'};
+ const {error}=await client.rpc('acknowledge_badge',{p_badge_id:id});
+ if(error)return {error:'Could not save this badge notification.'};
+ revalidatePath('/','layout');return {error:null};
+}

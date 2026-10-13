@@ -4,6 +4,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     const { id } = await params;
     if (!/^\d+$/.test(id) || !Number.isSafeInteger(Number(id)) || Number(id) <= 0) return new Response("Not found", { status: 404 });
     const supabase = await createClient();
+    const { data: auth, error: authError } = await supabase.auth.getUser();
+    if (authError || !auth.user || auth.user.is_anonymous) return new Response("Sign in to download or share images", { status: 401, headers: { "Cache-Control": "private, no-store" } });
     const { data, error } = await supabase.from("captions").select("image_url").eq("id", Number(id)).maybeSingle();
     if (error) return new Response("Image unavailable", { status: 503 });
     if (!data?.image_url) return new Response("Not found", { status: 404 });

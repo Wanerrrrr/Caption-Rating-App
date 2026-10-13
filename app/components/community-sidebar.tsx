@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import BadgeUnlockPanel from './badge-unlock-panel';
 import {createClient} from '@/lib/supabase/server';
 import {getMember,achievements} from '@/lib/community';
 import {getCredits} from '@/lib/challenge';
@@ -10,8 +11,14 @@ export default async function CommunitySidebar({profile}:{profile?:FrameProfile|
  if(!data.user||data.user.is_anonymous)return null;
  const [member,credits]=await Promise.all([getMember(client,data.user.id),getCredits(client)]);
  if(!member)return <ProfileSummary profile={profile}/>;
+ const {data:newBadges,error:notificationError}=await client.rpc('my_new_badges');
+ const notifications=notificationError?[]:((newBadges??[]) as {id:string}[]).flatMap(b=>{
+  const achievement=achievements.find(a=>a.id===b.id);
+  return achievement?[{id:b.id,name:achievement.name,description:achievement.description}]:[];
+ });
  const earned=new Set(member.badges.map(b=>b.id));
  return <>
+ <BadgeUnlockPanel key={data.user.id} badges={notifications}/>
  <ProfileSummary profile={{...profile,first_name:profile?.first_name??null,last_name:profile?.last_name??null,nickname:member.nickname,avatar_url:member.avatar_url}} badges={member.badges.filter(b=>b.displayed).map(b=>({id:b.id,name:achievements.find(a=>a.id===b.id)?.name??b.id}))}/>
  <div className="member-stats sidebar-member-stats"><Link href="/me"><strong>{member.likes}</strong><span>Likes received</span></Link><Link href="/me?connections=following"><strong>{member.following}</strong><span>Following</span></Link><Link href="/me?connections=followers"><strong>{member.followers}</strong><span>Followers</span></Link></div>
  <section className="sidebar-section"><div className="section-heading"><h3 className="folder-tab">Weekly credits</h3></div><div className="credit-progress-heading"><strong>{credits.weekly} / 10 left</strong><small>Resets Monday</small></div><progress aria-label="Weekly credits remaining" value={credits.weekly} max={10}/><p className="credit-bonus">{credits.bonus} reward credits</p></section>
