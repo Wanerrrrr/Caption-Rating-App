@@ -23,11 +23,11 @@ export default async function Post({ params }: { params: Promise<{ id: string }>
     const { data: challenge } = caption.challenge_id ? await supabase.from("weekly_challenges").select("ends_at,settled_at").eq("id", caption.challenge_id).maybeSingle() : { data: null };
     const votingClosed = Boolean(challenge && (challenge.settled_at || new Date(challenge.ends_at).getTime() <= challengeTime()));
     const [post] = await withPostAuthors(supabase, [caption]);
-    return <SiteFrame active={user ? "post" : "login"} profile={profile}>
+    return <SiteFrame guest={!user} active="post" profile={profile}>
         <div className="post-view"><h1 className="liked-title">Caption Club post</h1><article className="caption-card post-card">
-            {user && <VoteButtons captionId={caption.id} initialVote={vote?.vote ?? null} likeCount={Number(caption.like_count)} votingClosed={votingClosed} />}
+            {<VoteButtons guest={!user} captionId={caption.id} initialVote={vote?.vote ?? null} likeCount={Number(caption.like_count)} votingClosed={votingClosed} />}
             {caption.image_url && <CaptionPhoto src={caption.image_url} alt={caption.image_alt ?? "Caption photo"} />}
-            <div className="caption-content"><blockquote>{caption.caption}</blockquote><PostMeta author={post.author} createdAt={caption.created_at} /></div>
+            <div className="caption-content"><blockquote>{caption.caption}</blockquote><PostMeta canViewProfile={Boolean(user)} author={post.author} createdAt={caption.created_at} /></div>
             <ShareCaption id={caption.id} caption={caption.caption} hasImage={Boolean(caption.image_url)} />
         </article>{!user && <Link className="pill-button" href="/login">Sign in to like captions ↗</Link>}</div>
     </SiteFrame>;

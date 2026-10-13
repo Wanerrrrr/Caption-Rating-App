@@ -12,7 +12,7 @@ import Icon from './ui-icon';
 import {FollowButton,BadgeToggle} from './member-controls';
 export default async function MemberPage({id,connections}:{id?:string;connections?:string}){
  const client=await createClient();const {data:auth}=await client.auth.getUser();const user=auth.user&&!auth.user.is_anonymous?auth.user:null;
- if(!id&&!user)redirect('/login');const target=id??user!.id;if(!UUID.test(target))notFound();
+ if(!user)redirect('/login');const target=id??user!.id;if(!UUID.test(target))notFound();
  const own=user?.id===target;const member=await getMember(client,target);if(!member)notFound();
  const {data:profile}=user?await client.from('profiles').select('first_name,last_name,avatar_url,nickname').eq('id',user.id).maybeSingle():{data:null};
  const captions:ExploreCaption[]=[];

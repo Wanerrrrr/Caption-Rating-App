@@ -11,7 +11,7 @@ import VoteButtons from "../components/vote-buttons";
 import Icon from "../components/ui-icon";
 import ShareCaption from "../components/share-caption";
 
-export default function ExploreGallery({ captions, votesUnavailable, searchQuery = "", initialLikedOnly = false, contest = false, memberFeed = false }: { captions: ExploreCaption[]; votesUnavailable: boolean; searchQuery?: string; initialLikedOnly?: boolean; contest?: boolean; memberFeed?: boolean }) {
+export default function ExploreGallery({ captions, votesUnavailable, searchQuery = "", initialLikedOnly = false, contest = false, memberFeed = false, guest = false }: { captions: ExploreCaption[]; votesUnavailable: boolean; searchQuery?: string; initialLikedOnly?: boolean; contest?: boolean; memberFeed?: boolean; guest?: boolean }) {
     const [likedOnly, setLikedOnly] = useState(initialLikedOnly);
     const [theme, setTheme] = useState<ThemeId>("all");
     const [sort, setSort] = useState<ExploreSort>("newest");
@@ -68,7 +68,7 @@ export default function ExploreGallery({ captions, votesUnavailable, searchQuery
                 <button ref={filterButton} className="filter-button" type="button" aria-expanded={visible} aria-controls="explore-sort-options"
                     aria-label={`Filter: ${sortOptions.find(option => option.id === sort)?.label}${likedOnly ? ", Liked by me" : ""}`} onClick={() => setOpened(value => !value)}><Icon name="filter" />Filter<Icon name="chevron" /></button>
                 {visible && <fieldset id="explore-sort-options" className="filter-dropdown"><legend className="visually-hidden">Sort captions</legend>
-                    <label className="sort-option liked-filter-option"><input type="checkbox" checked={likedOnly} disabled={votesUnavailable} onChange={event => setLikedOnly(event.target.checked)} /><span>Liked by me</span></label>
+                    {!guest && <label className="sort-option liked-filter-option"><input type="checkbox" checked={likedOnly} disabled={votesUnavailable} onChange={event => setLikedOnly(event.target.checked)} /><span>Liked by me</span></label>}
                     {votesUnavailable && <p role="status" className="filter-notice">Couldn’t load your likes. Please refresh.</p>}
                     {sortOptions.map(option => <label className="sort-option" key={option.id}>
                         <input type="radio" name="explore-sort" checked={sort === option.id} onChange={() => { setSort(option.id); }} />
@@ -82,10 +82,10 @@ export default function ExploreGallery({ captions, votesUnavailable, searchQuery
             <div className="gallery-container">
                 {displayed.length ? <div ref={gallery} key={`${theme}:${sort}:${likedOnly}`} className="caption-grid explore-masonry" role="region" aria-label={memberFeed ? "Member posts — scroll down to browse" : contest ? "Challenge entries — scroll down to browse" : likedOnly ? "Liked feed — scroll down to browse" : "Explore feed — scroll down to browse"} tabIndex={0}>
                     {displayed.map(caption => <article className="caption-card" key={caption.id} data-caption-id={caption.id}>
-                        <VoteButtons captionId={caption.id} initialVote={caption.ownVote} likeCount={caption.like_count} unavailable={votesUnavailable} votingClosed={caption.votingClosed} onVoteSaved={() => router.refresh()} />
+                        <VoteButtons guest={guest} captionId={caption.id} initialVote={caption.ownVote} likeCount={caption.like_count} unavailable={votesUnavailable} votingClosed={caption.votingClosed} onVoteSaved={() => router.refresh()} />
                         {caption.image_url ? <CaptionPhoto src={caption.image_url} alt={caption.image_alt ?? caption.image_description ?? "Caption photo"} /> :
                             <div className="caption-photo photo-placeholder"><span className="photo-unavailable">Photo unavailable</span></div>}
-                        <div className="caption-content">{caption.challenge_id && <span className="challenge-post-label">{contest && caption.rank ? `#${caption.rank}${caption.reward ? ` · +${caption.reward} credits` : ""}` : "Weekly challenge"}</span>}<blockquote>{caption.caption}</blockquote><PostMeta author={caption.author ?? { nickname: "Member", avatar_url: null }} createdAt={caption.created_at} /></div>
+                        <div className="caption-content">{caption.challenge_id && <span className="challenge-post-label">{contest && caption.rank ? `#${caption.rank}${caption.reward ? ` · +${caption.reward} credits` : ""}` : "Weekly challenge"}</span>}<blockquote>{caption.caption}</blockquote><PostMeta canViewProfile={!guest} author={caption.author ?? { nickname: "Member", avatar_url: null }} createdAt={caption.created_at} /></div>
                         <ShareCaption id={caption.id} caption={caption.caption} hasImage={Boolean(caption.image_url)} />
                     </article>)}
                 </div> : <div className="explore-empty" role="status"><p>{likedOnly ? "No liked captions match these filters." : memberFeed ? "No posts yet." : contest ? "Be the first to enter this week’s challenge." : searchQuery ? "No matching captions. Try another keyword." : "No captions here yet."}</p>{likedOnly ? <button type="button" className="pill-button" onClick={() => setLikedOnly(false)}>Show all captions</button> : theme !== "all" ? <button type="button" className="pill-button" onClick={() => setTheme("all")}>View all themes</button> : <Link className="pill-button" href="/explore">{searchQuery ? "Clear search" : "View all"}</Link>}</div>}

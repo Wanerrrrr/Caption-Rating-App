@@ -581,3 +581,11 @@ a.post-author:hover .post-author-name { text-decoration:underline; }
 .prize-medal { width: 30px; height: 40px; flex-shrink: 0; }
 .challenge-prizes .prize-copy { padding: 0; background: transparent; border: 0; border-radius: 0; box-shadow: none; min-width: 0; }
 @media (max-width: 600px) { .challenge-prizes > div { gap: 6px; padding: 10px 7px; } .prize-medal { width: 22px; height: 30px; } }
+
+.guest-signin-link { display: block; text-align: center; }
+.profile-sidebar.guest-sidebar { justify-content: center; }
+.guest-signin-card { text-align: center; padding: 24px 4px; }
+.guest-signin-card h2 { font-family: var(--font-capriola),sans-serif; font-size: 30px; margin: 0 0 26px; }
+.guest-signin-card .pill-button { font-family: var(--font-capriola),sans-serif; font-size: 12px; padding: 14px 10px; justify-content: center; }
+.guest-shell .site-header { min-height: 30px; padding: 0; }
+@media (max-width: 767px) { .guest-shell .navigation-rail nav { grid-template-columns: repeat(3,minmax(0,1fr)); } }

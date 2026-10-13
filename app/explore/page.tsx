@@ -12,13 +12,12 @@ export default async function Explore({ searchParams }: {
     const { q, liked } = await searchParams;
     const searchQuery = (typeof q === "string" ? q : q?.[0] ?? "").slice(0, 200).trim().replace(/\s+/g, " ");
     const supabase = await createClient();
-    const { data, error: authError } = await supabase.auth.getClaims();
-    const userId = data?.claims?.sub;
-    if (authError || !userId) redirect("/login");
-    const { data: profile, error: profileError } = await supabase.from("profiles")
-        .select("first_name, last_name, avatar_url, nickname").eq("id", userId).maybeSingle();
+    const { data } = await supabase.auth.getUser();
+    const userId = data.user && !data.user.is_anonymous ? data.user.id : null;
+    const { data: profile, error: profileError } = userId ? await supabase.from("profiles")
+        .select("first_name, last_name, avatar_url, nickname").eq("id", userId).maybeSingle() : { data: null, error: null };
     if (profileError) throw new Error("Unable to load your profile. Please try again.");
-    if (!hasCompleteProfile(profile)) redirect("/profile");
+    if (userId && !hasCompleteProfile(profile)) redirect("/profile");
 
     // Page through the API limit so every caption participates in filtering and sorting.
     const captions: ExploreCaption[] = [];
@@ -33,7 +32,7 @@ export default async function Explore({ searchParams }: {
     }
     let votesFailed = false;
     const ownVotes = new Map<number, 1 | -1>();
-    for (let start = 0; ; start += 500) {
+    if (userId) for (let start = 0; ; start += 500) {
         const { data: votes, error } = await supabase.from("caption_votes")
             .select("id, caption_id, vote").eq("user_id", userId).order("id").range(start, start + 499);
         if (error) { votesFailed = true; break; }
@@ -43,8 +42,8 @@ export default async function Explore({ searchParams }: {
     const { data: closedRounds } = await supabase.from("weekly_challenges").select("id").lte("ends_at", new Date().toISOString());
     const closedIds = new Set((closedRounds ?? []).map(round => round.id));
     const posts = await withPostAuthors(supabase, captions);
-    return <SiteFrame active="explore" profile={profile} searchQuery={searchQuery}>
+    return <SiteFrame guest={!userId} active="explore" profile={profile} searchQuery={searchQuery}>
         {loadFailed ? <p role="alert" className="collection-notice">We couldn’t load the captions. Please refresh to try again.</p> :
-            <ExploreGallery initialLikedOnly={liked === "1"} key={`${searchQuery}:${liked ?? ""}`} searchQuery={searchQuery} captions={posts.map(caption => ({ ...caption, ownVote: ownVotes.get(caption.id) ?? null, votingClosed: Boolean(caption.challenge_id && closedIds.has(caption.challenge_id)) }))} votesUnavailable={votesFailed} />}
+            <ExploreGallery guest={!userId} initialLikedOnly={Boolean(userId && liked === "1")} key={`${searchQuery}:${liked ?? ""}`} searchQuery={searchQuery} captions={posts.map(caption => ({ ...caption, ownVote: ownVotes.get(caption.id) ?? null, votingClosed: Boolean(caption.challenge_id && closedIds.has(caption.challenge_id)) }))} votesUnavailable={votesFailed} />}
     </SiteFrame>;
 }

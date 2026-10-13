@@ -18,6 +18,7 @@ revoke all on challenge_internal.user_follows,challenge_internal.member_badges f
 create function public.community_profile(p_user_id uuid) returns jsonb language plpgsql security definer set search_path='' as $$
 declare person record; posts bigint; given bigint; received bigint; following bigint; followers bigint; entries bigint; wins bigint; own boolean:=auth.uid()=p_user_id; earned jsonb;
 begin
+ perform challenge_internal.require_user();
  select nickname,avatar_url into person from public.profiles where id=p_user_id and nickname is not null;
  if not found then return null; end if;
  select count(*),coalesce(sum(like_count),0) into posts,received from public.captions where created_by=p_user_id;
@@ -56,5 +57,5 @@ begin
  if not found then raise exception 'Earn this badge before displaying it'; end if;
 end $$;
 revoke all on function public.community_profile(uuid),public.set_member_follow(uuid,boolean),public.my_member_connections(text),public.set_displayed_badge(text,boolean) from public,anon,authenticated;
-grant execute on function public.community_profile(uuid) to anon,authenticated;
+grant execute on function public.community_profile(uuid) to authenticated;
 grant execute on function public.set_member_follow(uuid,boolean),public.my_member_connections(text),public.set_displayed_badge(text,boolean) to authenticated;
