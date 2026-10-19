@@ -35,7 +35,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
             </div>
             {params.error === "name" && <p role="alert" className="collection-notice">Please enter both names, using 1–100 characters each.</p>}
             {params.error === "nickname" && <p role="alert" className="collection-notice">Choose a nickname using 1–40 characters.</p>}
-            {params.saved === "1" && <p role="status" className="collection-notice">Profile saved. <Link href="/">Continue to captions ↗</Link></p>}
+            {params.saved === "1" && <p role="status" className="collection-notice">Profile saved. <Link href="/explore">Continue to captions ↗</Link></p>}
             <div className="profile-grid">
                 <AvatarUpload userId={userId} currentAvatarUrl={profile?.avatar_url ?? null} />
                 <section className="details-card">

@@ -54,8 +54,8 @@ export default function ExploreGallery({ captions, votesUnavailable, searchQuery
             document.removeEventListener("keydown", escape);
         };
     }, [visible]);
-    return <div className={`explore-content${memberFeed ? " member-posted-feed" : ""}`}>
-        {!memberFeed && (contest ? <h2 className="visually-hidden">Challenge entries</h2> : <h1 className="visually-hidden">Explore captions</h1>)}
+    return <div className={`explore-content${memberFeed ? " member-posted-feed" : !contest ? " all-captions-panel" : ""}`}>
+        {!memberFeed && (contest ? <h2 className="visually-hidden">Challenge entries</h2> : <h1 className="folder-tab all-captions-tab">All captions</h1>)}
         {!contest && !memberFeed && <nav className="theme-options" aria-label="Caption themes">{themes.map(item =>
             <button key={item.id} type="button" className="theme-option" aria-pressed={theme === item.id}
                 onClick={() => setTheme(item.id)}>{item.label}</button>

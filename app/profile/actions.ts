@@ -71,5 +71,5 @@ export async function updateProfile(formData: FormData) {
     }
 
     revalidatePath("/", "layout");
-    redirect("/profile?saved=1");
+    redirect("/explore");
 }

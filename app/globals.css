@@ -605,3 +605,82 @@ a.post-author:hover .post-author-name { text-decoration:underline; }
 .badge-unlock-panel .badge-unlock-more { font-size:12px; margin:0 0 14px; }
 .badge-unlock-panel .badge-unlock-error { font-size:12px; color:var(--red); }
 .badge-unlock-panel button:disabled { opacity:.6; cursor:wait; }
+
+/* Activity panel and entries share one central page scroll. */
+.weekly-challenge-panel { display:flex; flex-direction:column; gap:18px; }
+.weekly-challenge-panel .eyebrow { font-family:var(--font-capriola),sans-serif; font-size:9px; line-height:1.5; margin:0; text-shadow:none; }
+.weekly-challenge-panel .challenge-prizes { margin-top:18px; }
+.challenge-enter-button { margin-top:22px; }
+.feed-panel .site-main:has(.explore-page-content) { display:block; overflow-y:auto; padding-right:8px; }
+.explore-page-content { display:flex; flex-direction:column; gap:22px; padding-bottom:20px; }
+.explore-page-content > .explore-content { flex:none; min-height:300px; }
+.explore-page-content .explore-gallery { flex:none; }
+.explore-page-content .gallery-container { container-type:inline-size; min-height:300px; }
+.explore-page-content .explore-masonry { flex:none; overflow:visible; }
+.challenge-generation { display:flex; flex-direction:column; gap:16px; }
+.challenge-generation h2,.challenge-entries-heading { font-family:var(--font-capriola),sans-serif; font-size:20px; margin:0; }
+.challenge-signin { margin:0; }
+.challenge-entry-notice { margin:0; padding:18px; background:var(--mint); border:2px solid var(--outline); border-radius:18px; font-size:13px; }
+@media(max-width:600px) {
+ .weekly-challenge-panel .challenge-prizes { grid-template-columns:1fr; gap:8px; }
+ .weekly-challenge-panel .challenge-prizes > div { padding:10px 12px; }
+ .weekly-challenge-panel .prize-copy { display:flex; align-items:center; justify-content:space-between; gap:12px; flex:1; }
+ .weekly-challenge-panel .prize-copy span { margin-top:0; }
+}
+
+.challenge-submissions { display:flex; flex-direction:column; gap:16px; scroll-margin-top:16px; }
+.challenge-submissions > .explore-content { min-height:300px; }
+.challenge-entry-hint { font-size:12px; color:var(--ink); margin:0; }
+.challenge-entry-notice a { text-decoration:underline; }
+
+/* Shared compact activity card on Explore and Challenge. */
+.challenge-overview .challenge-hero { display:grid; gap:10px; padding:16px 18px; }
+.challenge-overview .challenge-intro { font-size:11px; line-height:1.45; margin:5px 0 0; }
+.challenge-overview .challenge-heading .eyebrow { font-size:9px; margin:0; }
+.challenge-overview .challenge-hero > h2 { font-size:22px; line-height:1.25; margin:0; }
+.challenge-overview .challenge-hero > p { font-size:12px; line-height:1.45; margin:0; }
+.challenge-overview .challenge-prizes { margin:0; gap:8px; }
+.challenge-overview .challenge-prizes > div { padding:7px 8px; gap:7px; border-radius:13px; box-shadow:2px 2px 0 #ddd9f5; }
+.challenge-overview .prize-medal { width:22px; height:30px; }
+.challenge-overview .challenge-prizes strong { font-size:10px; }
+.challenge-overview .challenge-prizes span { font-size:10px; margin-top:3px; }
+.challenge-overview .challenge-enter-button { justify-self:center; margin:0; padding:9px 14px; font-size:11px; border-radius:14px; }
+@media(max-width:600px) {
+ .challenge-overview .challenge-hero { padding:14px; }
+ .challenge-overview .challenge-prizes { grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; }
+ .challenge-overview .challenge-prizes > div { flex-direction:column; align-items:flex-start; gap:4px; padding:7px; }
+ .challenge-overview .challenge-prizes .prize-copy { display:block; flex:none; }
+}
+
+.weekly-challenge-panel.challenge-overview { padding-top:28px; }
+.challenge-overview .challenge-hero { position:relative; border-top-left-radius:0; }
+.challenge-overview .challenge-hero > .challenge-panel-tab { position:absolute; top:-29px; left:-2px; z-index:1; height:29px; margin:0; padding:4px 12px; font-family:var(--font-capriola),sans-serif; font-size:13px; line-height:19px; letter-spacing:normal; }
+
+/* One folder surrounds the Explore controls and the caption feed. */
+.all-captions-panel { position:relative; margin-top:28px; padding:18px; background:white; border:2px solid var(--outline); border-radius:0 24px 24px 24px; box-shadow:3px 3px 0 #17152f16; }
+.all-captions-panel > .all-captions-tab { position:absolute; top:-29px; left:-2px; z-index:1; height:29px; margin:0; padding:4px 12px; font-family:var(--font-capriola),sans-serif; font-size:13px; line-height:19px; }
+.all-captions-panel .gallery-container { border:0; border-radius:0; padding:0; background:transparent; box-shadow:none; min-height:0; overflow:visible; }
+.all-captions-panel .explore-toolbar { padding-bottom:16px; }
+@media(max-width:767px) { .all-captions-panel { padding:12px; border-radius:0 22px 22px 22px; } }
+
+/* A short illustrated invitation leaves more room for captions on Explore. */
+.challenge-banner { position:relative; display:flex; align-items:center; gap:18px; min-height:112px; padding:18px 20px; border:2px solid var(--outline); border-radius:0 24px 24px 24px; background:var(--yellow); box-shadow:3px 3px 0 #17152f16; }
+.challenge-banner > .challenge-panel-tab { position:absolute; top:-29px; left:-2px; height:29px; margin:0; padding:4px 12px; font-family:var(--font-capriola),sans-serif; font-size:13px; line-height:19px; }
+.challenge-banner-art { position:relative; flex:0 0 100px; height:76px; }
+.challenge-banner-art .sticker-laugh { position:absolute; top:-4px; left:0; width:62px; height:62px; transform:rotate(-12deg); }
+.challenge-banner-medals { position:absolute; right:0; bottom:0; display:flex; gap:0; align-items:flex-end; }
+.challenge-banner-medals .prize-medal { width:26px; height:36px; filter:drop-shadow(1px 2px 0 #17152f18); }
+.challenge-banner-medals .prize-medal:first-child { width:32px; height:44px; transform:rotate(-10deg); }
+.challenge-banner-medals .prize-medal:last-child { transform:rotate(10deg); }
+.challenge-banner-copy { flex:1; min-width:0; margin:0; font-family:var(--font-capriola),sans-serif; font-size:clamp(18px,1.7vw,25px); font-weight:700; line-height:1.35; letter-spacing:-.5px; }
+.challenge-banner-copy span { display:block; width:fit-content; box-shadow:inset 0 -.35em 0 var(--pink); }
+.challenge-banner-enter { flex-shrink:0; justify-content:center; white-space:nowrap; padding:12px 16px; font-size:12px; }
+@media(max-width:600px) {
+ .challenge-banner { gap:10px; padding:14px 12px; min-height:100px; }
+ .challenge-banner-art { flex-basis:54px; height:70px; }
+ .challenge-banner-art .sticker-laugh { width:46px; height:46px; }
+ .challenge-banner-medals .prize-medal { width:16px; height:24px; }
+ .challenge-banner-medals .prize-medal:first-child { width:20px; height:28px; }
+ .challenge-banner-copy { font-size:clamp(13px,3.5vw,18px); letter-spacing:-.2px; }
+ .challenge-banner-enter { padding:10px 8px; font-size:10px; border-radius:13px; }
+}

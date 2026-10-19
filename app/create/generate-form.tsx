@@ -133,7 +133,7 @@ export default function GenerateForm({ configured, initialCredits, challenge }: 
                 <blockquote>{result.caption}</blockquote>
                 {!published && <p>This is a preview. Publish when you’re happy with it.</p>}
             </section>}
-            {published ? <Link className="pill-button" href={challenge ? "/" : "/explore"}>View published caption ↗</Link> : <div className="generation-actions">
+            {published ? <Link className="pill-button" href={challenge ? "/?view=challenge#challenge-entries" : "/explore"}>View published caption ↗</Link> : <div className="generation-actions">
                 <button className="pill-button" type="submit" disabled={pending || !configured || credits.total <= 0}>{pending && !publishing ? "Generating…" : result ? "Regenerate" : "Generate"}<span aria-hidden="true">✳</span></button>
                 {result && <button className="pill-button publish-button" type="button" disabled={pending} onClick={publish}>{publishing ? "Publishing…" : "Publish"}<Icon name="arrow" /></button>}
             </div>}

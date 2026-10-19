@@ -4,7 +4,7 @@
 - First theme: **NYC Moments**. The host can schedule subsequent theme or fixed-image challenges at `/challenge/manage`. Challenge configuration is immutable after creation to keep entries fair.
 - Each round starts Monday 00:00 America/New_York and ends the next Monday. One published entry per account; self-likes are allowed. Votes on contest entries freeze at the deadline everywhere, including Explore, Liked and original posts.
 - Entries rank by final likes, submission time, then caption ID. Ranks 1, 2–4 and 5–14 earn 3, 2 and 1 credits respectively. Fewer participants means fewer awards. Zero-like entries remain eligible.
-- Results and rewards settle transactionally on the first signed-in visit to Home after the deadline. Concurrent visits cannot issue duplicate rewards. This is lazy settlement, not a midnight cron job.
+- Results and rewards settle transactionally on the first signed-in visit to Explore or Challenge after the deadline. Concurrent visits cannot issue duplicate rewards. This is lazy settlement, not a midnight cron job.
 - Credits are free allowances and contest rewards only. There is no payment, recharge, purchase, or billing feature.
 - Each Monday the balance resets to 10 weekly credits. Rewards accumulate without expiry; weekly credits are used first. Existing posts and historic generations do not consume the new allowance.
 - A successful preview, including Regenerate, costs one credit. Publishing costs none. Failed generation refunds its reservation. A stopped or interrupted server request expires after five minutes and refunds when the user's balance is next read. Only one active generation is allowed per account.
@@ -29,3 +29,14 @@ The connected database migration is applied. NYC Moments runs Oct 12–19 at mid
 Security advisors flag the seven deliberately privileged authenticated RPCs ([advisor explanation](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable)). Their permissions are intentional: wallet reads/settlement verify signed-in identity, AI reservation/completion additionally require the server-only secret, and challenge creation requires host membership. The existing project warning for leaked-password protection predates this feature ([configuration documentation](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection)); no Auth settings were changed.
 
 Vercel configuration and code deployment are still pending. No live Gemini request or real contest settlement was performed as part of these checks.
+
+
+## Explore activity panel and inline challenge entry
+
+OAuth success and saving completed profile details now redirect to `/explore`; both Caption Club wordmarks also link there. Required nickname/profile completion remains enforced before entering the signed-in feed.
+
+Explore shows the current active challenge beneath the search bar, with medal rewards inside the yellow panel above the Enter challenge link. This opens the existing challenge page (`/?view=challenge`). With the activity panel above the feed, Explore uses one central scroll so the panel and posts fit naturally without clipping.
+
+Challenge uses the same yellow panel and prize markup, without an entry button. A signed-in member who has not submitted sees the existing Generate → Review → Regenerate / Publish form directly below it, bound to the current challenge. For the current round, submissions appear only after the member has published; preview generation alone does not reveal them. The existing refresh after publication switches to the submitted state and lists every entry. Returning entrants see submissions immediately and cannot generate a second entry. Guests must sign in and publish to see current submissions. Finished-round results remain readable. This is a Challenge-page presentation rule; published challenge posts still participate in the public Explore feed.
+
+Validation includes eight offline checks covering the pre/post-publication page states, guests, finished rounds, lookup errors, OAuth and profile-completion redirects. All 46 tests, lint, TypeScript and production build pass. Browser checks confirm the activity panel/prize placement, entry link, embedded generator, hidden pre-publication submissions and wordmark navigation. No live generation or real post publication was performed for this layout update.

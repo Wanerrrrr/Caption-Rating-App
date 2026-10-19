@@ -1,3 +1,5 @@
+import ChallengePanel from "../components/challenge-panel";
+import {challengeTime,type Challenge} from "@/lib/challenge";
 import { withPostAuthors } from "@/lib/post-authors";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -19,6 +21,8 @@ export default async function Explore({ searchParams }: {
     if (profileError) throw new Error("Unable to load your profile. Please try again.");
     if (userId && !hasCompleteProfile(profile)) redirect("/profile");
 
+    // Explore is the main landing page; settle completed rounds on signed-in visits too.
+    const {error:settlementError}=userId?await supabase.rpc("settle_weekly_challenges"):{error:null};
     // Page through the API limit so every caption participates in filtering and sorting.
     const captions: ExploreCaption[] = [];
     let loadFailed = false;
@@ -41,9 +45,16 @@ export default async function Explore({ searchParams }: {
     }
     const { data: closedRounds } = await supabase.from("weekly_challenges").select("id").lte("ends_at", new Date().toISOString());
     const closedIds = new Set((closedRounds ?? []).map(round => round.id));
+    const now = new Date(challengeTime()).toISOString();
+    const {data:activeChallenge} = await supabase.from("weekly_challenges").select("*")
+        .lte("starts_at",now).gt("ends_at",now).is("settled_at",null).order("week_start",{ascending:false}).limit(1).maybeSingle();
     const posts = await withPostAuthors(supabase, captions);
     return <SiteFrame guest={!userId} active="explore" profile={profile} searchQuery={searchQuery}>
+        <div className="explore-page-content">
+        {settlementError&&<p role="status" className="collection-notice">Challenge rewards are still being settled. Please refresh.</p>}
+        {activeChallenge&&<ChallengePanel overview challenge={activeChallenge as Challenge} enterHref="/?view=challenge"/>}
         {loadFailed ? <p role="alert" className="collection-notice">We couldn’t load the captions. Please refresh to try again.</p> :
             <ExploreGallery guest={!userId} initialLikedOnly={Boolean(userId && liked === "1")} key={`${searchQuery}:${liked ?? ""}`} searchQuery={searchQuery} captions={posts.map(caption => ({ ...caption, ownVote: ownVotes.get(caption.id) ?? null, votingClosed: Boolean(caption.challenge_id && closedIds.has(caption.challenge_id)) }))} votesUnavailable={votesFailed} />}
+        </div>
     </SiteFrame>;
 }
