@@ -10,11 +10,11 @@ import SiteFrame from "./components/site-frame";
 import ExploreGallery from "./explore/explore-gallery";
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ round?: string; view?: string }> }) {
+    const { round, view } = await searchParams;
+    if (!round && view !== "challenge") redirect("/explore");
     const client = await createClient();
     const { data: auth } = await client.auth.getUser();
     const userId = auth.user && !auth.user.is_anonymous ? auth.user.id : null;
-    const { round, view } = await searchParams;
-    if (!userId && !round && view !== "challenge") redirect("/explore");
     const { data: profile, error: profileError } = userId ? await client.from("profiles").select("first_name,last_name,avatar_url,nickname").eq("id",userId).maybeSingle() : { data: null, error: null };
     if (profileError) throw new Error("Unable to load your profile.");
     if (userId && !hasCompleteProfile(profile)) redirect("/profile");
@@ -58,7 +58,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
                     <p className="challenge-entry-hint">Publish your entry to see this week’s submissions.</p>
                 </>}
             </section>}
-            <div className="challenge-rounds"><Link href={userId ? "/" : "/?view=challenge"} aria-current={!round?'page':undefined}>This week</Link>{past.map(item=><Link key={item.id} href={`/?round=${item.id}`} aria-current={challenge?.id===item.id?'page':undefined}>{item.title}</Link>)}</div>
+            <div className="challenge-rounds"><Link href="/?view=challenge" aria-current={!round?'page':undefined}>This week</Link>{past.map(item=><Link key={item.id} href={`/?round=${item.id}`} aria-current={challenge?.id===item.id?'page':undefined}>{item.title}</Link>)}</div>
             {settlementError && <p role="alert">Results are still being settled. Please refresh.</p>}
             {entriesError || captionsError ? <p role="alert">Entries could not be loaded. Please refresh.</p> : challenge && canViewEntries && <section id="challenge-entries" className="challenge-submissions">
                 <h2 className="challenge-entries-heading">{closed?"Challenge results":"This week’s submissions"}</h2>

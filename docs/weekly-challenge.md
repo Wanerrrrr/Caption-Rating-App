@@ -1,6 +1,6 @@
 # Weekly challenge setup and operations
 
-- Home `/` becomes Weekly Challenge; Explore remains the everyday feed.
+- The root `/` opens Explore for both signed-in visitors and guests. Weekly Challenge is opened explicitly at `/?view=challenge`; past rounds remain at `/?round=...`.
 - First theme: **NYC Moments**. The host can schedule subsequent theme or fixed-image challenges at `/challenge/manage`. Challenge configuration is immutable after creation to keep entries fair.
 - Each round starts Monday 00:00 America/New_York and ends the next Monday. One published entry per account; self-likes are allowed. Votes on contest entries freeze at the deadline everywhere, including Explore, Liked and original posts.
 - Entries rank by final likes, submission time, then caption ID. Ranks 1, 2–4 and 5–14 earn 3, 2 and 1 credits respectively. Fewer participants means fewer awards. Zero-like entries remain eligible.

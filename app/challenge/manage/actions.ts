@@ -30,5 +30,5 @@ export async function createChallenge(form: FormData) {
         redirect(`/challenge/manage?error=${error.code === '23505' ? 'duplicate' : 'invalid'}`);
     }
     revalidatePath("/"); revalidatePath("/challenge/manage");
-    redirect("/?challengeCreated=1");
+    redirect("/?view=challenge&challengeCreated=1");
 }

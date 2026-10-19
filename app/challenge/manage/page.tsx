@@ -25,6 +25,6 @@ export default async function Manage({ searchParams }: { searchParams: Promise<{
             <p className="nickname-help">Leave the image empty to let people upload their own. Ends the following Monday at 12:00 AM. Published challenges cannot be edited.</p>
             <button className="pill-button" type="submit">Publish challenge ↗</button>
         </form>
-        <div className="details-card challenge-history"><h2>Scheduled challenges</h2>{challenges?.map(challenge=><p key={challenge.id}>{challenge.week_start} · {challenge.title}</p>)}<Link href="/">Back to weekly challenge ↗</Link></div>
+        <div className="details-card challenge-history"><h2>Scheduled challenges</h2>{challenges?.map(challenge=><p key={challenge.id}>{challenge.week_start} · {challenge.title}</p>)}<Link href="/?view=challenge">Back to weekly challenge ↗</Link></div>
     </SiteFrame>;
 }

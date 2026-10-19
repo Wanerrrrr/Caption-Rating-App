@@ -37,8 +37,8 @@ test('closed rounds show results without a generation form, including to guests'
 test('an entry lookup error does not accidentally allow duplicate generation',async()=>{
  const f=fixture({entriesError:true});const page=await f.run();assert.equal(elements(page,'GenerateForm').length,0);assert.equal(elements(page,'ExploreGallery').length,0);assert.equal(f.creditReads,0);
 });
-test('guest root keeps Explore as its default destination',async()=>{
- await assert.rejects(fixture({user:null}).run({}),/redirect:\/explore/);
+for(const user of [null,{id:'owner'}])test(`root defaults to Explore for ${user?'signed-in visitors':'guests'}`,async()=>{
+ await assert.rejects(fixture({user}).run({}),/redirect:\/explore/);
 });
 test('OAuth callback lands on Explore and preserves the existing error redirect',async()=>{
  const callback=load('app/auth/callback/route.ts',{'next/server':{NextResponse:{redirect:url=>({url})}},'@/lib/supabase/server':{createClient:async()=>({auth:{exchangeCodeForSession:async()=>({error:null})}})}});
